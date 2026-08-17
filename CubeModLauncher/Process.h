@@ -1,24 +1,38 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include <iostream>
+#include <string>
+#include <string_view>
 #include <windows.h>
+#include "ScopedHandle.h"
+
 class Process
 {
-    public:
-        Process(std::string path);
-        virtual ~Process();
-        bool InjectDLL(std::string dllName);
-        bool Create();
-        void Run();
+public:
+    explicit Process(std::string path);
+    virtual ~Process();
 
-    protected:
+    // Disable copy
+    Process(const Process&) = delete;
+    Process& operator=(const Process&) = delete;
 
-    private:
-        std::string path;
-        STARTUPINFO si;
-        PROCESS_INFORMATION pi;
+    // Enable move
+    Process(Process&&) noexcept = default;
+    Process& operator=(Process&&) noexcept = default;
 
+    [[nodiscard]] bool Create();
+    [[nodiscard]] bool InjectDLL(std::string_view dllName);
+    void Run();
+
+    [[nodiscard]] bool IsCreated() const noexcept;
+    [[nodiscard]] DWORD GetProcessId() const noexcept;
+
+private:
+    std::string path_;
+    STARTUPINFOA si_{};
+    PROCESS_INFORMATION pi_{};
+    bool created_{false};
+    bool resumed_{false};
 };
 
 #endif // PROCESS_H

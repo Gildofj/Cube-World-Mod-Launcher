@@ -1,63 +1,70 @@
 #include "main.h"
 #include <iostream>
+#include <filesystem>
+#include <string>
+#include <string_view>
 #include <windows.h>
-#include <vector>
 #include "Process.h"
 
-char* CUBE_EXECUTABLE = "cubeworld.exe";
-char* MODLOADER_DLL = "CubeModLoader.dll";
+namespace fs = std::filesystem;
 
-using namespace std;
+constexpr std::string_view DEFAULT_CUBE_EXECUTABLE = "cubeworld.exe";
+constexpr std::string_view MODLOADER_DLL = "CubeModLoader.dll";
 
-bool FileExists(const char* fileName) {
-    DWORD dwAttrib = GetFileAttributes(fileName);
-    return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+bool FileExists(std::string_view fileName) {
+    std::error_code ec;
+    fs::path p(fileName);
+    return fs::exists(p, ec) && fs::is_regular_file(p, ec);
 }
 
-int Bail(int result){
-    printf("Press enter to exit.\n");
-    cin.ignore();
+int Bail(int result) {
+    std::cout << "\nPress Enter to exit.\n";
+    std::cin.get();
     return result;
 }
 
 int main(int argc, char** argv) {
+    std::string cubeExecutable(DEFAULT_CUBE_EXECUTABLE);
     if (argc >= 2) {
-        CUBE_EXECUTABLE = argv[1];
+        cubeExecutable = argv[1];
     }
 
-    //Cube world is obviously required
-    if (!FileExists(CUBE_EXECUTABLE)) {
-        printf("%s not found.\n", CUBE_EXECUTABLE);
+    std::cout << "========================================\n";
+    std::cout << "  Cube World Mod Launcher (Modernized)  \n";
+    std::cout << "========================================\n\n";
+
+    // Validate target executable exists
+    if (!FileExists(cubeExecutable)) {
+        std::cerr << "[Error] Target executable not found: " << cubeExecutable << "\n";
         return Bail(1);
     }
 
-    //Inject our dll
-    if ( !FileExists(MODLOADER_DLL) ) {
-        printf("%s not found.\n", MODLOADER_DLL);
+    // Validate mod loader DLL exists
+    if (!FileExists(MODLOADER_DLL)) {
+        std::cerr << "[Error] ModLoader DLL not found: " << MODLOADER_DLL << "\n";
         return Bail(1);
     }
 
-    Process process(CUBE_EXECUTABLE);
+    Process process(cubeExecutable);
 
-    //Create game in suspended state
-    printf("Starting %s...\n\n", CUBE_EXECUTABLE);
+    std::cout << "[*] Starting " << cubeExecutable << " in suspended mode...\n";
     if (!process.Create()) {
-        printf("Failed to create process: %lu", GetLastError());
+        std::cerr << "[Error] Failed to create process. System error code: " << GetLastError() << "\n";
         return Bail(1);
-    } else {
-        printf("%s was successfully started.\n\n", CUBE_EXECUTABLE);
     }
+    std::cout << "[+] Process created successfully (PID: " << process.GetProcessId() << ").\n\n";
 
-    process.InjectDLL( std::string(MODLOADER_DLL) );
+    std::cout << "[*] Injecting " << MODLOADER_DLL << " into remote process...\n";
+    if (!process.InjectDLL(MODLOADER_DLL)) {
+        std::cerr << "[Error] Injection failed.\n";
+        return Bail(1);
+    }
+    std::cout << "[+] Injection completed successfully.\n\n";
 
-    // Need to give the loader some time to work
-    // This is a horrible thing and probably will result in a race condition please help me
-    Sleep(250);
-
-    // Let Cube World run!
+    // Resume main game thread
+    std::cout << "[*] Resuming target process execution...\n";
     process.Run();
-
-    Sleep(3000);
+    std::cout << "[+] Cube World is now running.\n";
 
     return 0;
 }

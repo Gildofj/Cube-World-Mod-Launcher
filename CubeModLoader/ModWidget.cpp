@@ -285,18 +285,41 @@ void mod::ModWidget::Init()
 
 void mod::ModWidget::LoadSave(std::vector<DLL*>* mods)
 {
-	std::ifstream in(file_name.c_str());
-	std::string line;
+	if (!mods)
+	{
+		return;
+	}
 
-	while (getline(in, line)) {
-		auto pos = line.find(":");
+	std::ifstream in(file_name.c_str());
+	if (!in.is_open())
+	{
+		return;
+	}
+
+	std::string line;
+	while (std::getline(in, line)) {
+		if (line.empty())
+		{
+			continue;
+		}
+
+		auto pos = line.find(':');
 		if (pos != std::string::npos)
 		{
-			std::string name(line.substr(0, pos));
-			bool enabled = stoi(line.substr(pos + 1, line.size() - 1));
+			std::string name = line.substr(0, pos);
+			std::string valStr = line.substr(pos + 1);
+
+			bool enabled = false;
+			try {
+				enabled = (std::stoi(valStr) != 0);
+			} catch (...) {
+				// Ignore corrupted line and continue parsing
+				continue;
+			}
+
 			for (DLL* dll : *mods)
 			{
-				if (!name.compare(dll->fileName))
+				if (dll && name == dll->fileName)
 				{
 					dll->enabled = enabled;
 				}
@@ -307,10 +330,22 @@ void mod::ModWidget::LoadSave(std::vector<DLL*>* mods)
 
 void mod::ModWidget::StoreSave(std::vector<DLL*>* mods)
 {
+	if (!mods)
+	{
+		return;
+	}
+
 	std::ofstream out(file_name.c_str());
+	if (!out.is_open())
+	{
+		return;
+	}
+
 	for (DLL* dll : *mods)
 	{
-		out << dll->fileName << ":" << dll->enabled << "\n";
+		if (dll)
+		{
+			out << dll->fileName << ":" << (dll->enabled ? 1 : 0) << "\n";
+		}
 	}
-	out.close();
 }

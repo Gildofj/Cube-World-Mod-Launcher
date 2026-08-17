@@ -63,3 +63,22 @@ TEST_CASE(LauncherUtilities, ArgParsingCustomExecutable) {
     ASSERT_STREQ(args.executable_name.c_str(), "custom_game.exe");
     ASSERT_STREQ(args.dll_name.c_str(), "custom_loader.dll");
 }
+
+TEST_CASE(LauncherUtilities, ScopedHandleLifecycle) {
+    HANDLE hEvent = CreateEventA(nullptr, TRUE, FALSE, nullptr);
+    ASSERT_TRUE(hEvent != nullptr && hEvent != INVALID_HANDLE_VALUE);
+
+    {
+        // Wrapper owns the handle
+        struct ScopedHandleTest {
+            HANDLE h;
+            ScopedHandleTest(HANDLE handle) : h(handle) {}
+            ~ScopedHandleTest() { if (h && h != INVALID_HANDLE_VALUE) CloseHandle(h); }
+        } scoped(hEvent);
+
+        // Handle is valid inside scope
+        DWORD waitRes = WaitForSingleObject(hEvent, 0);
+        ASSERT_EQ(waitRes, WAIT_TIMEOUT);
+    }
+}
+

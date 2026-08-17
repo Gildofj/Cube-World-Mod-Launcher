@@ -1,13 +1,21 @@
 #include "mutex.h"
 
-mutex::mutex(){
+mutex::mutex() {
     InitializeCriticalSection(&cs);
 }
 
-void mutex::lock(){
+mutex::~mutex() {
+    DeleteCriticalSection(&cs);
+}
+
+void mutex::lock() {
     EnterCriticalSection(&cs);
 }
 
-void mutex::unlock(){
+void mutex::unlock() {
     LeaveCriticalSection(&cs);
+}
+
+bool mutex::try_lock() {
+    return TryEnterCriticalSection(&cs) != 0;
 }

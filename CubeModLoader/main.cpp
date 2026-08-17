@@ -117,14 +117,13 @@ mutex already_loaded_mods_mtx;
 extern "C" void StartMods() {
     char msg[256] = {0};
 
-    already_loaded_mods_mtx.lock();
-    // Don't allow this to run more than once
-    if (already_loaded_mods) {
-        already_loaded_mods_mtx.unlock();
-        return;
+    {
+        ScopedLock lock(already_loaded_mods_mtx);
+        if (already_loaded_mods) {
+            return;
+        }
+        already_loaded_mods = true;
     }
-    already_loaded_mods = true;
-    already_loaded_mods_mtx.unlock();
 
     ModPreInitialize();
     SetupHandlers();
@@ -310,13 +309,13 @@ extern "C" __declspec(dllexport) BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD
     case DLL_PROCESS_ATTACH:
 
 
-        already_initialized_mtx.lock();
-        if (already_initialized) {
-            already_initialized_mtx.unlock();
-            return true;
+        {
+            ScopedLock lock(already_initialized_mtx);
+            if (already_initialized) {
+                return true;
+            }
+            already_initialized = true;
         }
-        already_initialized = true;
-        already_initialized_mtx.unlock();
 
         base = GetModuleHandle(NULL);
 

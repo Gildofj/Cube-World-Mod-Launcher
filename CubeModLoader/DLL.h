@@ -1,32 +1,38 @@
 #ifndef DLL_H
 #define DLL_H
-#include <iostream>
+
+#include <string>
 #include <windows.h>
 #define MODLOADER 1
 #include "CWSDK/cwsdk.h"
-//#include "GenericMod.h"
 
 class DLL
 {
-    public:
-        std::string fileName;
-        HMODULE handle;
+public:
+    std::string fileName;
+    HMODULE handle{nullptr};
 
-        FARPROC ModPreInitialize;
-        FARPROC ModMajorVersion;
-        FARPROC ModMinorVersion;
-		FARPROC MakeMod;
+    FARPROC ModPreInitialize{nullptr};
+    FARPROC ModMajorVersion{nullptr};
+    FARPROC ModMinorVersion{nullptr};
+    FARPROC MakeMod{nullptr};
 
-		GenericMod* mod;
-        bool enabled;
+    GenericMod* mod{nullptr};
+    bool enabled{true};
 
-        DLL(std::string fileName);
-        HMODULE Load();
-        virtual ~DLL();
+    explicit DLL(std::string fileName);
+    virtual ~DLL();
 
-    protected:
+    // Disable copy to prevent double free of resources
+    DLL(const DLL&) = delete;
+    DLL& operator=(const DLL&) = delete;
 
-    private:
+    // Enable move semantics
+    DLL(DLL&& other) noexcept;
+    DLL& operator=(DLL&& other) noexcept;
+
+    HMODULE Load();
+    [[nodiscard]] bool IsLoaded() const noexcept;
 };
 
 #endif // DLL_H

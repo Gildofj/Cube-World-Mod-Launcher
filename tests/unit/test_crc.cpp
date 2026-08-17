@@ -84,3 +84,16 @@ TEST_CASE(CRC32, FileBinaryPayload) {
 
     ASSERT_EQ(file_crc, mem_crc);
 }
+
+TEST_CASE(CRC32, FileNullPointerSafe) {
+    unsigned int crc = crc32_file(nullptr);
+    ASSERT_EQ(crc, 0x00000000);
+}
+
+TEST_CASE(CRC32, FileNonExistentReturnsZero) {
+    Mocking::TempDirectoryScope temp_dir;
+    auto missing_path = temp_dir.path / "missing_file_xyz.bin";
+    unsigned int crc = crc32_file(missing_path.string().c_str());
+    ASSERT_EQ(crc, 0x00000000);
+}
+

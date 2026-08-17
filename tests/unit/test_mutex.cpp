@@ -78,3 +78,38 @@ TEST_CASE(MutexSynchronization, ThreadSafeFlagInitialization) {
     ASSERT_EQ(initialization_count, 1);
     ASSERT_TRUE(already_initialized);
 }
+
+TEST_CASE(MutexSynchronization, ScopedLockGuaranteedUnlock) {
+    mutex mtx;
+    long long counter = 0;
+    const int NUM_THREADS = 8;
+    const int ITERATIONS_PER_THREAD = 10000;
+
+    std::vector<std::thread> threads;
+    threads.reserve(NUM_THREADS);
+
+    for (int t = 0; t < NUM_THREADS; ++t) {
+        threads.emplace_back([&]() {
+            for (int i = 0; i < ITERATIONS_PER_THREAD; ++i) {
+                ScopedLock lock(mtx);
+                counter++;
+            }
+        });
+    }
+
+    for (auto& th : threads) {
+        if (th.joinable()) {
+            th.join();
+        }
+    }
+
+    ASSERT_EQ(counter, (long long)(NUM_THREADS * ITERATIONS_PER_THREAD));
+}
+
+TEST_CASE(MutexSynchronization, TryLockBehavior) {
+    mutex mtx;
+    ASSERT_TRUE(mtx.try_lock());
+    // In Windows Critical Section, same thread re-entry succeeds, so unlock and test
+    mtx.unlock();
+}
+

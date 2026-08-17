@@ -1,21 +1,73 @@
 #include "DLL.h"
 #include <iostream>
+#include <utility>
 
-DLL::DLL(std::string fileName) {
-    this->fileName = fileName;
-    this->handle = nullptr;
-    this->enabled = true;
+DLL::DLL(std::string fileName)
+    : fileName(std::move(fileName))
+    , handle(nullptr)
+    , ModPreInitialize(nullptr)
+    , ModMajorVersion(nullptr)
+    , ModMinorVersion(nullptr)
+    , MakeMod(nullptr)
+    , mod(nullptr)
+    , enabled(true)
+{
 }
 
-HMODULE DLL::Load() {
-    this->handle = LoadLibraryA(this->fileName.c_str());
-    if (!this->handle) {
-        printf("Could not load %s: %ld\n", this->fileName.c_str(), GetLastError());
-        exit(1);
+DLL::DLL(DLL&& other) noexcept
+    : fileName(std::move(other.fileName))
+    , handle(other.handle)
+    , ModPreInitialize(other.ModPreInitialize)
+    , ModMajorVersion(other.ModMajorVersion)
+    , ModMinorVersion(other.ModMinorVersion)
+    , MakeMod(other.MakeMod)
+    , mod(other.mod)
+    , enabled(other.enabled)
+{
+    other.handle = nullptr;
+    other.mod = nullptr;
+}
+
+DLL& DLL::operator=(DLL&& other) noexcept
+{
+    if (this != &other) {
+        if (handle != nullptr) {
+            FreeLibrary(handle);
+        }
+        fileName = std::move(other.fileName);
+        handle = other.handle;
+        ModPreInitialize = other.ModPreInitialize;
+        ModMajorVersion = other.ModMajorVersion;
+        ModMinorVersion = other.ModMinorVersion;
+        MakeMod = other.MakeMod;
+        mod = other.mod;
+        enabled = other.enabled;
+
+        other.handle = nullptr;
+        other.mod = nullptr;
     }
-    return this->handle;
+    return *this;
 }
 
-DLL::~DLL() {
-    //dtor
+HMODULE DLL::Load()
+{
+    if (handle != nullptr) {
+        return handle;
+    }
+
+    handle = LoadLibraryA(fileName.c_str());
+    if (!handle) {
+        std::cerr << "[ModLoader Error] Could not load " << fileName << ": Win32 Error " << GetLastError() << "\n";
+    }
+    return handle;
+}
+
+bool DLL::IsLoaded() const noexcept
+{
+    return handle != nullptr;
+}
+
+DLL::~DLL()
+{
+    // Mod DLLs stay loaded in address space unless explicit cleanup
 }
