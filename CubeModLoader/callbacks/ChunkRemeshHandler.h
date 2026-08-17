@@ -10,8 +10,8 @@ extern "C" int ChunkRemeshHandler(cube::Zone* zone) {
 }
 
 GETTER_VAR(void*, ASM_ChunkRemeshHandler_jmpback);
-void ASM_ChunkRemeshHandler() {
-	asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_ChunkRemeshHandler() {
+	asm(".intel_syntax noprefix \n"
 		PUSH_ALL
 
 		PREPARE_STACK
@@ -31,6 +31,7 @@ void ASM_ChunkRemeshHandler() {
 		"mov [rbp-0x64], edi \n"
 
 		DEREF_JMP(ASM_ChunkRemeshHandler_jmpback)
+			".att_syntax prefix \n"
 	);
 }
 void SetupChunkRemeshHandler() {

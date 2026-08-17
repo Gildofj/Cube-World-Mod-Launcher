@@ -57,8 +57,8 @@ extern "C" void GameTickHandler(cube::Game* game) {
 }
 
 GETTER_VAR(void*, ASMGameTickHandler_jmpback);
-void ASMGameTickHandler() {
-    asm(".intel_syntax \n"
+__attribute__((naked)) void ASMGameTickHandler() {
+    asm(".intel_syntax noprefix \n"
 		PUSH_ALL
 
         "mov rcx, rax \n" // cube::Game*
@@ -79,7 +79,8 @@ void ASMGameTickHandler() {
 		"lea rcx, [rbp+0xB8] \n"
 
 		DEREF_JMP(ASMGameTickHandler_jmpback)
-       );
+       		".att_syntax prefix \n"
+	);
 }
 void SetupGameTickHandler() {
     WriteFarJMP(Offset(base, 0x136458), (void*)&ASMGameTickHandler);

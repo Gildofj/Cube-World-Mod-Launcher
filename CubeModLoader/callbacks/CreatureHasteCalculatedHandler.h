@@ -9,8 +9,8 @@ extern "C" int CreatureHasteCalculatedHandler(cube::Creature* creature, float* h
 	return 0;
 }
 
-void ASM_CreatureHasteCalculatedHandler() {
-	asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_CreatureHasteCalculatedHandler() {
+	asm(".intel_syntax noprefix \n"
 
 
 		"mov [rsp-0x80], rbx \n" //remember cube::Creature*
@@ -71,6 +71,7 @@ void ASM_CreatureHasteCalculatedHandler() {
 		"movaps xmm7, [rsp+0x30] \n"
 		"add rsp, 0x58 \n"
 		"ret \n"
+			".att_syntax prefix \n"
 	);
 }
 void SetupCreatureHasteCalculatedHandler() {

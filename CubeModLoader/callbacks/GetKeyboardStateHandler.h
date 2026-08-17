@@ -10,8 +10,8 @@ extern "C" int GetKeyboardStateHandler(BYTE* diKeys) {
 }
 
 GETTER_VAR(void*, ASM_GetKeyboardStateHandler_jmpback);
-void ASM_GetKeyboardStateHandler() {
-    asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_GetKeyboardStateHandler() {
+    asm(".intel_syntax noprefix \n"
 		// original code
 		"mov rcx, qword ptr [rbp-0x50] \n"
 		"mov rax, [rcx] \n"
@@ -30,7 +30,8 @@ void ASM_GetKeyboardStateHandler() {
         POP_ALL
 
         DEREF_JMP(ASM_GetKeyboardStateHandler_jmpback)
-       );
+       		".att_syntax prefix \n"
+	);
 }
 void SetupGetKeyboardStateHandler() {
     WriteFarJMP(Offset(base, 0x13664B), (void*)&ASM_GetKeyboardStateHandler);

@@ -217,8 +217,8 @@ extern "C" void StartMods() {
 }
 
 
-void ASMStartMods() {
-    asm(".intel_syntax \n"
+__attribute__((naked)) void ASMStartMods() {
+    asm(".intel_syntax noprefix \n"
 		PUSH_ALL
         PREPARE_STACK
 
@@ -230,6 +230,7 @@ void ASMStartMods() {
 
         // Run initterm_e properly this time.
 		DEREF_JMP(initterm_e)
+		".att_syntax prefix \n"
         );
 }
 

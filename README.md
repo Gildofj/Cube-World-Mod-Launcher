@@ -68,17 +68,16 @@ Cube-World-Mod-Launcher/
 git clone --recurse-submodules https://github.com/ChrisMiuchiz/Cube-World-Mod-Launcher.git
 cd Cube-World-Mod-Launcher
 
-# 2. Build CubeModLauncher (Executable)
-cd CubeModLauncher
-mkdir build && cd build
-cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
-cmake --build .
+# 2. Build everything from root (Makefile / MinGW)
+make
+# or via PowerShell:
+# .\build.ps1
 
-# 3. Build CubeModLoader (DLL)
-cd ../../CubeModLoader
-mkdir build && cd build
-cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
-cmake --build .
+# Options:
+make loader     # Builds only CubeModLoader (.dll and .fip)
+make launcher   # Builds only CubeModLauncher (.exe)
+make test       # Builds and runs test suite
+make clean      # Cleans build artifacts
 ```
 
 For comprehensive build details, see the [Development & Build Guide](docs/DEVELOPMENT-GUIDE.md).

@@ -14,7 +14,7 @@ extern "C" int CheckInventoryFullHandler(cube::Creature* player, cube::Item* ite
 GETTER_VAR(void*, ASMCheckInventoryFullHandler_jmpback);
 GETTER_VAR(void*, ASMCheckInventoryFullHandler_retn);
 __attribute__((naked)) void ASMCheckInventoryFullHandler() {
-    asm(".intel_syntax \n"
+    asm(".intel_syntax noprefix \n"
 		PUSH_ALL
 
         PREPARE_STACK
@@ -51,7 +51,8 @@ __attribute__((naked)) void ASMCheckInventoryFullHandler() {
         POP_ALL
         "mov al,1 \n"
 		DEREF_JMP(ASMCheckInventoryFullHandler_retn)
-       );
+       		".att_syntax prefix \n"
+	);
 }
 void SetupCheckInventoryFullHandler() {
     WriteFarJMP(Offset(base, 0x50670), (void*)&ASMCheckInventoryFullHandler);

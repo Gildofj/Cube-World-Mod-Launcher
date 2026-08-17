@@ -10,8 +10,8 @@ extern "C" int ZoneGeneratedHandler(cube::Zone* zone) {
 }
 
 GETTER_VAR(void*, ASM_ZoneGeneratedHandler_jmpback);
-void ASM_ZoneGeneratedHandler() {
-    asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_ZoneGeneratedHandler() {
+    asm(".intel_syntax noprefix \n"
 		PUSH_ALL
 
         "mov rcx, rbp \n" // new zone*
@@ -31,7 +31,8 @@ void ASM_ZoneGeneratedHandler() {
         "lea rcx, [r14+0x3C8] \n"
 
         DEREF_JMP(ASM_ZoneGeneratedHandler_jmpback)
-       );
+       		".att_syntax prefix \n"
+	);
 }
 void SetupZoneGeneratedHandler() {
     WriteFarJMP(Offset(base, 0x2AE34F), (void*)&ASM_ZoneGeneratedHandler);

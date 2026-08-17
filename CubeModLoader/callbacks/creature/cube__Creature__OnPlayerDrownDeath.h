@@ -28,7 +28,7 @@ extern "C" void cube__Creature__OnPlayerDrownDeath(cube::Creature * player)
 
 GETTER_VAR(void*, ASM_cube__Creature__OnPlayerDrownDeath_JMPBACK);
 __attribute__((naked)) void ASM_cube__Creature__OnPlayerDrownDeath() {
-	asm(".intel_syntax \n"
+	asm(".intel_syntax noprefix \n"
 
 		// r13: player
 		// r12: world
@@ -44,6 +44,7 @@ __attribute__((naked)) void ASM_cube__Creature__OnPlayerDrownDeath() {
 		"mov     qword ptr [rbp-0x48], 0 \n"
 
 		DEREF_JMP(ASM_cube__Creature__OnPlayerDrownDeath_JMPBACK)
+			".att_syntax prefix \n"
 	);
 }
 

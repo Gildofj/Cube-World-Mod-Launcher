@@ -7,3 +7,10 @@ build*/
 *.pdb
 *.ilk
 *.cwb
+*.fip
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.vcxproj*
+*.sln*
+*.dir/

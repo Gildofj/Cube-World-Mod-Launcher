@@ -1,10 +1,12 @@
 #pragma once
+#include <cmath>
+#include <algorithm>
 #include "../../CWSDK/cwsdk.h"
 
 extern "C" int cube__Item__OnGetSellingPrice(cube::Item* item)
 {
 	int buyingPrice = item->GetBuyingPrice();
-	int sellingPrice = std::max<float>(0.5f * std::sqrt(buyingPrice), 1);
+	int sellingPrice = (int)std::max<float>(0.5f * std::sqrt((float)buyingPrice), 1.0f);
 
 	for (uint8_t priority = 0; priority <= 4; priority += 1) {
 		for (DLL* dll : modDLLs) {

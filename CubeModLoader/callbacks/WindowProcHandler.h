@@ -12,8 +12,8 @@ extern "C" int WindowProcHandler(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 }
 
 GETTER_VAR(void*, ASM_WindowProcHandler_jmpback);
-void ASM_WindowProcHandler() {
-    asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_WindowProcHandler() {
+    asm(".intel_syntax noprefix \n"
 		PUSH_ALL
         PREPARE_STACK
 
@@ -40,7 +40,8 @@ void ASM_WindowProcHandler() {
         "1: \n"  //block
         POP_ALL
 		"ret \n"
-       );
+       		".att_syntax prefix \n"
+	);
 }
 void SetupWindowProcHandler() {
     WriteFarJMP(Offset(base, 0x133C70), (void*)&ASM_WindowProcHandler);

@@ -10,8 +10,8 @@ extern "C" int GetMouseStateHandler(DIMOUSESTATE* diMouse) {
 }
 
 GETTER_VAR(void*, ASM_GetMouseStateHandler_jmpback);
-void ASM_GetMouseStateHandler() {
-    asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_GetMouseStateHandler() {
+    asm(".intel_syntax noprefix \n"
 		// original code
 		"mov rcx, qword ptr [rbp-0x78] \n"
 		"mov rax, [rcx] \n"
@@ -30,7 +30,8 @@ void ASM_GetMouseStateHandler() {
         POP_ALL
 
         DEREF_JMP(ASM_GetMouseStateHandler_jmpback)
-       );
+       		".att_syntax prefix \n"
+	);
 }
 void SetupGetMouseStateHandler() {
     WriteFarJMP(Offset(base, 0x13665F), (void*)&ASM_GetMouseStateHandler);

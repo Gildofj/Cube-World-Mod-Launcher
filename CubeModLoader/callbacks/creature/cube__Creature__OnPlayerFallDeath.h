@@ -20,7 +20,7 @@ extern "C" void cube__Creature__OnPlayerFallDeath(cube::Creature * player)
 
 GETTER_VAR(void*, ASM_cube__Creature__OnPlayerFallDeath_JMPBACK);
 __attribute__((naked)) void ASM_cube__Creature__OnPlayerFallDeath() {
-	asm(".intel_syntax \n"
+	asm(".intel_syntax noprefix \n"
 
 		// r13: player
 		// r15: world
@@ -28,6 +28,7 @@ __attribute__((naked)) void ASM_cube__Creature__OnPlayerFallDeath() {
 		"call cube__Creature__OnPlayerFallDeath \n"
 
 		DEREF_JMP(ASM_cube__Creature__OnPlayerFallDeath_JMPBACK)
+			".att_syntax prefix \n"
 	);
 }
 

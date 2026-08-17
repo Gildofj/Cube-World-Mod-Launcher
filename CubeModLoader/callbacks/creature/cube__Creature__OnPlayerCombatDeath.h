@@ -21,7 +21,7 @@ extern "C" void SoundPacket__ctor(void* a1)
 
 GETTER_VAR(void*, ASM_cube__Creature__OnPlayerCombatDeath_JMPBACK);
 __attribute__((naked)) void ASM_cube__Creature__OnPlayerCombatDeath() {
-		asm(".intel_syntax \n"
+		asm(".intel_syntax noprefix \n"
 			
 			// Move current cube::Game* to the first argument. 
 			// This does not have to be restored, because rcx is set to a value afterwards anyways
@@ -32,7 +32,8 @@ __attribute__((naked)) void ASM_cube__Creature__OnPlayerCombatDeath() {
 			"lea  rcx, [rbp+0x0A20] \n"
 			"call SoundPacket__ctor \n"
 			DEREF_JMP(ASM_cube__Creature__OnPlayerCombatDeath_JMPBACK)
-		);
+				".att_syntax prefix \n"
+	);
 }
 
 void setup_cube__Creature__OnPlayerCombatDeath() {

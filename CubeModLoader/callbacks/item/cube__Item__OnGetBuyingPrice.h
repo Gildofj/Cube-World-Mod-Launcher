@@ -1,9 +1,11 @@
 #pragma once
+#include <cmath>
+#include <algorithm>
 #include "cwsdk.h"
 
 extern "C" void cube__Item__GetBuyingPrice(float base_cost, cube::Item* item, int* price)
 {
-	*price = std::max<int>(base_cost * std::powf(2, item->rarity), 1);
+	*price = std::max<int>(base_cost * std::pow(2.0f, (float)item->rarity), 1);
 
 	for (uint8_t priority = 0; priority <= 4; priority += 1) {
 		for (DLL* dll : modDLLs) {
@@ -15,7 +17,7 @@ extern "C" void cube__Item__GetBuyingPrice(float base_cost, cube::Item* item, in
 }
 
 __attribute__((naked)) void ASM_cube__Item__GetBuyingPrice() {
-		asm(".intel_syntax \n"
+		asm(".intel_syntax noprefix \n"
 			
 			"movaps xmm0, xmm6 \n"
 			"movaps xmm6, xmmword ptr [rsp+0x20] \n"
@@ -31,10 +33,11 @@ __attribute__((naked)) void ASM_cube__Item__GetBuyingPrice() {
 
 			// Old code and return
 			"add	rsp, 0x38 \n"
-			"retn \n"
+			"ret \n"
+			".att_syntax prefix \n"
 		);
 }
 
 void setup_cube__Item__GetBuyingPrice() {
-    WriteFarJMP(CWOffset(0x109E0E), ASM_cube__Item__GetBuyingPrice);
+    WriteFarJMP(CWOffset(0x109E0E), (void*)&ASM_cube__Item__GetBuyingPrice);
 }

@@ -233,7 +233,7 @@ void mod::ModWidget::Init()
 
 	void* vtab[43] = {
 	CWOffset(0x268B40),
-	Draw,				// void Draw(plasma::Widget*)
+	(void*)Draw,				// void Draw(plasma::Widget*)
 	CWOffset(0x26A720),
 	CWOffset(0x26A720),
 	RETZERO,

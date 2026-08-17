@@ -9,8 +9,8 @@ extern "C" int CreatureRegenerationCalculatedHandler(cube::Creature* creature, f
 	return 0;
 }
 
-void ASM_CreatureRegenerationCalculatedHandler() {
-	asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_CreatureRegenerationCalculatedHandler() {
+	asm(".intel_syntax noprefix \n"
 
 		"movaps xmm0, xmm6 \n" // get result
 
@@ -38,6 +38,7 @@ void ASM_CreatureRegenerationCalculatedHandler() {
 		"add rsp, 0x30 \n"
 		"pop rbx \n"
 		"ret \n"
+			".att_syntax prefix \n"
 	);
 }
 void SetupCreatureRegenerationCalculatedHandler() {

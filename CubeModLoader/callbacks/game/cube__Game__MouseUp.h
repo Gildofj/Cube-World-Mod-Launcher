@@ -56,7 +56,7 @@ extern "C" void cube__Game__MouseUp(cube::Game* game, cube::MouseButton mouse_bu
 
 GETTER_VAR(void*, ASM_cube__Game__MouseUp_jmpback);
 __attribute__((naked)) void ASM_cube__Game__MouseUp() {
-	asm(".intel_syntax \n"
+	asm(".intel_syntax noprefix \n"
 		PUSH_ALL
 		PREPARE_STACK
 		"call cube__Game__MouseUp \n"
@@ -64,6 +64,7 @@ __attribute__((naked)) void ASM_cube__Game__MouseUp() {
 		POP_ALL
 		"xor r12d, r12d \n"
 		DEREF_JMP(ASM_cube__Game__MouseUp_jmpback)
+			".att_syntax prefix \n"
 	);
 }
 void setup_cube__Game__MouseUp() {

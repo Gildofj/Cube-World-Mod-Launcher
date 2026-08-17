@@ -15,7 +15,7 @@ extern "C" void cube__Game__Update(cube::Game * game)
 GETTER_VAR(void*, ASM_cube__Game__Update_jmpback);
 GETTER_VAR(void*, ASM_cube__Game__Update_bail);
 __attribute__((naked)) void ASM_cube__Game__Update() {
-	asm(".intel_syntax \n"
+	asm(".intel_syntax noprefix \n"
 		PUSH_ALL
 		"mov rcx, r13 \n"
 		PREPARE_STACK
@@ -32,6 +32,7 @@ __attribute__((naked)) void ASM_cube__Game__Update() {
 
 		"1: \n"
 		DEREF_JMP(ASM_cube__Game__Update_bail)
+			".att_syntax prefix \n"
 	);
 }
 void setup_cube__Game__Update() {

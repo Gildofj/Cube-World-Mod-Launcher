@@ -9,8 +9,8 @@ extern "C" int CreatureCriticalCalculatedHandler(cube::Creature* creature, float
 	return 0;
 }
 
-void ASM_CreatureCriticalCalculatedHandler() {
-	asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_CreatureCriticalCalculatedHandler() {
+	asm(".intel_syntax noprefix \n"
 
 		"movaps xmm0, xmm6 \n" //get result
 
@@ -40,6 +40,7 @@ void ASM_CreatureCriticalCalculatedHandler() {
 		"add rsp, 0x30 \n"
 		"pop rdi \n"
 		"ret \n"
+			".att_syntax prefix \n"
 	);
 }
 void SetupCreatureCriticalCalculatedHandler() {

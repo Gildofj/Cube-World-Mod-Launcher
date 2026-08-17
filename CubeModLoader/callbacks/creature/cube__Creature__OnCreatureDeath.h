@@ -16,7 +16,7 @@ extern "C" void cube__Creature__OnCreatureDeath(cube::Creature* creature, cube::
 
 GETTER_VAR(void*, ASM_cube__Creature__OnCreatureDeath_JMPBACK);
 __attribute__((naked)) void ASM_cube__Creature__OnCreatureDeath() {
-	asm(".intel_syntax \n"
+	asm(".intel_syntax noprefix \n"
 
 		// This does not have to be restored, because rcx and rdx are set to a value afterwards anyways
 		"mov rdx, r15 \n"
@@ -27,6 +27,7 @@ __attribute__((naked)) void ASM_cube__Creature__OnCreatureDeath() {
 		"xor r15d, r15d \n"
 		"mov dword ptr [rbp - 0x41], 0x3F800000 \n"
 		DEREF_JMP(ASM_cube__Creature__OnCreatureDeath_JMPBACK)
+			".att_syntax prefix \n"
 	);
 }
 

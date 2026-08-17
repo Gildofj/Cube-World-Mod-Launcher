@@ -10,8 +10,8 @@ extern "C" int PresentHandler(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT
 }
 
 GETTER_VAR(void*, ASM_PresentHandler_jmpback);
-void ASM_PresentHandler() {
-	asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_PresentHandler() {
+	asm(".intel_syntax noprefix \n"
 
 		// Set up for the call (original code)
 		"setnz bl \n"
@@ -30,6 +30,7 @@ void ASM_PresentHandler() {
 		"call [rax+0x40] \n"
 
 		DEREF_JMP(ASM_PresentHandler_jmpback)
+			".att_syntax prefix \n"
 	);
 }
 void SetupPresentHandler() {

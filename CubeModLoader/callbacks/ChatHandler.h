@@ -13,8 +13,8 @@ extern "C" int ChatHandler(std::wstring* msg) {
 
 GETTER_VAR(void*, ASMChatHandler_jmpback);
 GETTER_VAR(void*, ASMChatHandler_bail);
-void ASMChatHandler() {
-	asm(".intel_syntax \n"
+__attribute__((naked)) void ASMChatHandler() {
+	asm(".intel_syntax noprefix \n"
 		PUSH_ALL
 
 		"mov rcx, rbx \n" //The (std::wstring*) message
@@ -44,6 +44,7 @@ void ASMChatHandler() {
 		"bail: \n"
 		POP_ALL
 		DEREF_JMP(ASMChatHandler_bail)
+			".att_syntax prefix \n"
 	);
 }
 void SetupChatHandler() {

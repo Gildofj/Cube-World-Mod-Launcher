@@ -14,8 +14,8 @@ extern "C" int P2PRequestHandler(long long steamID) {
 GETTER_VAR(void*, ASMP2PRequestHandler_jmpback);
 GETTER_VAR(void*, ASMP2PRequestHandler_block);
 GETTER_VAR(void*, ASMP2PRequestHandler_allow);
-void ASMP2PRequestHandler() {
-    asm(".intel_syntax \n"
+__attribute__((naked)) void ASMP2PRequestHandler() {
+    asm(".intel_syntax noprefix \n"
 		PUSH_ALL
 
         "mov rcx, [rdi] \n" //incoming steam id
@@ -54,7 +54,8 @@ void ASMP2PRequestHandler() {
         "2: \n" //allow
         POP_ALL
         DEREF_JMP(ASMP2PRequestHandler_allow)
-       );
+       		".att_syntax prefix \n"
+	);
 }
 void SetupP2PRequestHandler() {
     WriteFarJMP(Offset(base, 0x9F6DF), (void*)&ASMP2PRequestHandler);

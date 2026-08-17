@@ -9,8 +9,8 @@ extern "C" int CreatureAttackPowerCalculatedHandler(cube::Creature* creature, fl
 	return 0;
 }
 
-void ASM_CreatureAttackPowerCalculatedHandler() {
-	asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_CreatureAttackPowerCalculatedHandler() {
+	asm(".intel_syntax noprefix \n"
 		PUSH_ALL
 
 		// put result on stack
@@ -38,6 +38,7 @@ void ASM_CreatureAttackPowerCalculatedHandler() {
 		"pop rdi \n"
 		"pop rsi \n"
 		"ret \n"
+			".att_syntax prefix \n"
 	);
 }
 void SetupCreatureAttackPowerCalculatedHandler() {

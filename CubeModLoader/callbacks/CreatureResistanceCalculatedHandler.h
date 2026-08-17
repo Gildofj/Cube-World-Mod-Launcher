@@ -9,8 +9,8 @@ extern "C" int CreatureResistanceCalculatedHandler(cube::Creature* creature, flo
 	return 0;
 }
 
-void ASM_CreatureResistanceCalculatedHandler() {
-	asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_CreatureResistanceCalculatedHandler() {
+	asm(".intel_syntax noprefix \n"
 
 		"movaps xmm0, xmm6 \n" //get result
 
@@ -39,6 +39,7 @@ void ASM_CreatureResistanceCalculatedHandler() {
 		"add rsp, 0x30 \n"
 		"pop rdi \n"
 		"ret \n"
+			".att_syntax prefix \n"
 	);
 }
 void SetupCreatureResistanceCalculatedHandler() {

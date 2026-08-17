@@ -10,8 +10,8 @@ extern "C" int ZoneDestroyHandler(cube::Zone* zone) {
 }
 
 GETTER_VAR(void*, ASM_ZoneDestroyHandler_jmpback);
-void ASM_ZoneDestroyHandler() {
-    asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_ZoneDestroyHandler() {
+    asm(".intel_syntax noprefix \n"
 		PUSH_ALL
         PREPARE_STACK
 
@@ -28,7 +28,8 @@ void ASM_ZoneDestroyHandler() {
 		"mov qword ptr [rsp+0x20], 0x0FFFFFFFFFFFFFFFE \n"
 
         DEREF_JMP(ASM_ZoneDestroyHandler_jmpback)
-       );
+       		".att_syntax prefix \n"
+	);
 }
 void SetupZoneDestroyHandler() {
     WriteFarJMP(Offset(base, 0x2F9940), (void*)&ASM_ZoneDestroyHandler);

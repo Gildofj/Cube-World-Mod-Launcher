@@ -9,8 +9,8 @@ extern "C" int CreatureManaGenerationCalculatedHandler(cube::Creature* creature,
 	return 0;
 }
 
-void ASM_CreatureManaGenerationCalculatedHandler() {
-	asm(".intel_syntax \n"
+__attribute__((naked)) void ASM_CreatureManaGenerationCalculatedHandler() {
+	asm(".intel_syntax noprefix \n"
 
 		"push rcx \n" //Remember cube::Creature*
 
@@ -75,6 +75,7 @@ void ASM_CreatureManaGenerationCalculatedHandler() {
 		"add rsp, 8 \n" //pop creature
 
 		"ret \n"
+			".att_syntax prefix \n"
 	);
 }
 void SetupCreatureManaGenerationCalculatedHandler() {
