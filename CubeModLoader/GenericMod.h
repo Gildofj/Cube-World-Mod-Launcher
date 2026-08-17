@@ -1,6 +1,9 @@
 #ifndef GENERICMOD_H
 #define GENERICMOD_H
 
+#include <cstdint>
+#include <windows.h>
+
 class GenericMod {
 public:
 	enum Priority : uint8_t {

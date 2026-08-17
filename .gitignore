@@ -1,2 +1,9 @@
-.vs
-out
+.vs/
+out/
+build*/
+*.exe
+*.o
+*.obj
+*.pdb
+*.ilk
+*.cwb
