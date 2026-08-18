@@ -81,9 +81,8 @@ extern "C" void cube__CharacterPreviewWidget__Draw(cube::CharacterPreviewWidget 
 	Matrix4__Multiply(&node->transformation->base_transformation, &a2);
 	*/
 
-	// This is crashing somehow?
-	widget->game->renderer->CW_DB630(&creature->animation_state, 100, 100);
-	((void (*)(plasma::D3D11Engine*))(*(int*)widget->d3d11_engine + 0x80))(widget->d3d11_engine);
+	// Call virtual function at vtable offset 0x80
+	(*(void (**)(plasma::D3D11Engine*))(*(char**)widget->d3d11_engine + 0x80))(widget->d3d11_engine);
 }
 
 overwrite_function(0x26EBA0, cube__CharacterPreviewWidget__Draw);

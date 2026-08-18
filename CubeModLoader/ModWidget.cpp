@@ -121,8 +121,8 @@ void mod::ModWidget::Draw(ModWidget* widget)
 	std::wstring wstr_x(L"X");
 
 	// Translate background and node
-	widget->node->Translate(game->width/2, game->height/2, -size.x/2, -size.y/2);
-	widget->background->Translate(game->width / 2, game->height / 2, -size.x / 2, -size.y / 2);
+	widget->node->Translate((float)game->width / 2.0f, (float)game->height / 2.0f, -size.x / 2.0f, -size.y / 2.0f);
+	widget->background->Translate((float)game->width / 2.0f, (float)game->height / 2.0f, -size.x / 2.0f, -size.y / 2.0f);
 
 	// Scale background and node
 	widget->SetSize(&size);
@@ -147,7 +147,7 @@ void mod::ModWidget::Draw(ModWidget* widget)
 
 	// Draw x to exit
 	widget->SetTextPivot(plasma::TextPivot::Right);
-	if (plasma::Widget::IsSquareHovered(&mouse_pos, size.x - 30, 20, 20, 30))
+	if (plasma::Widget::IsSquareHovered(&mouse_pos, (int)size.x - 30, 20, 20, 30))
 	{
 		widget->SetTextColor(&hover_color);
 		widget->hover_state = ModWidget::HoverState::Exit;
@@ -173,8 +173,8 @@ void mod::ModWidget::Draw(ModWidget* widget)
 			widget->SetTextColor(&disabled_color);
 		}
 
-		int y_pos = (4 + 2 * y_count) * (10 + text_size);
-		if (plasma::Widget::IsSquareHovered(&mouse_pos, 0, y_pos - 20, size.x, 30))
+		float y_pos = (4.0f + 2.0f * y_count) * (10.0f + text_size);
+		if (plasma::Widget::IsSquareHovered(&mouse_pos, 0, (int)y_pos - 20, (int)size.x, 30))
 		{
 			widget->SetTextColor(&hover_color);
 			widget->hover_state = HoverState::Toggle;
@@ -185,7 +185,7 @@ void mod::ModWidget::Draw(ModWidget* widget)
 		{
 			name = name.substr(0, 42) + L"...";
 		}
-		widget->DrawString(&pos, &name, 20, y_pos);
+		widget->DrawString(&pos, &name, 20.0f, y_pos);
 
 		y_count++;
 		if (y_pos > size.y - 2 * (10 + text_size))
@@ -200,12 +200,12 @@ void mod::ModWidget::Draw(ModWidget* widget)
 	{
 		widget->SetTextColor(&disabled_color);
 	}
-	else if (plasma::Widget::IsSquareHovered(&mouse_pos, 20, size.y - text_size - 20, 20, 30))
+	else if (plasma::Widget::IsSquareHovered(&mouse_pos, 20, (int)(size.y - text_size - 20.0f), 20, 30))
 	{
 		widget->hover_state = HoverState::Previous;
 		widget->SetTextColor(&hover_color);
 	}
-	widget->DrawString(&pos, &wstr_prev, 20, size.y - text_size);
+	widget->DrawString(&pos, &wstr_prev, 20.0f, size.y - text_size);
 
 	// Draw next button
 	widget->SetTextPivot(plasma::TextPivot::Right);
@@ -215,7 +215,7 @@ void mod::ModWidget::Draw(ModWidget* widget)
 	{
 		widget->SetTextColor(&disabled_color);
 	}
-	else if (plasma::Widget::IsSquareHovered(&mouse_pos, size.x - text_size - 20, size.y - text_size - 20, 20, 30))
+	else if (plasma::Widget::IsSquareHovered(&mouse_pos, (int)(size.x - text_size - 20.0f), (int)(size.y - text_size - 20.0f), 20, 30))
 	{
 		widget->hover_state = HoverState::Next;
 		widget->SetTextColor(&hover_color);

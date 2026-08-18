@@ -65,7 +65,12 @@ unsigned int crc32_file(const char* fileName)
         return 0;
     }
 
-    FILE* file = fopen(fileName, "rb");
+    FILE* file = nullptr;
+#if defined(_MSC_VER)
+    fopen_s(&file, fileName, "rb");
+#else
+    file = fopen(fileName, "rb");
+#endif
     if (!file) {
         return 0;
     }

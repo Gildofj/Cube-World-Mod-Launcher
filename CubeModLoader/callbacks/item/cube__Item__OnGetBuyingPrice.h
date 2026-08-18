@@ -6,7 +6,7 @@
 extern "C" void cube__Item__GetBuyingPrice(float base_cost, cube::Item* item, int* price)
 {
     if (!item || !price) return;
-	*price = std::max<int>(base_cost * std::pow(2.0f, (float)item->rarity), 1);
+	*price = std::max<int>(static_cast<int>(base_cost * std::pow(2.0f, (float)item->rarity)), 1);
 
 	for (uint8_t priority = 0; priority <= 4; priority += 1) {
 		for (DLL* dll : modDLLs) {

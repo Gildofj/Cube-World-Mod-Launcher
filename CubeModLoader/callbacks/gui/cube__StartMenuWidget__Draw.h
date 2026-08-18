@@ -41,7 +41,7 @@ void DrawModdedText(cube::StartMenuWidget* widget)
 	widget->SetTextPivot(plasma::TextPivot::Center);
 	widget->SetBorderColor(&border_color);
 	widget->SetTextColor(&modded_color);
-	widget->DrawString(&pos, &txt_modded, 0.5* widget->GetXSize(), height);
+	widget->DrawString(&pos, &txt_modded, 0.5f * widget->GetXSize(), (float)height);
 }
 
 extern "C" void cube__StartMenuWidget__Draw(cube::StartMenuWidget * widget)
@@ -121,7 +121,7 @@ extern "C" void cube__StartMenuWidget__Draw(cube::StartMenuWidget * widget)
 	for (int i = 0; i < num_btns; i++)
 	{
 		int btn_y = y_offset + i * btn_height;
-		if (!plasma::Widget::IsSquareHovered(&mouse_pos, 0, btn_y - 20, width, 30))
+		if (!plasma::Widget::IsSquareHovered(&mouse_pos, 0, btn_y - 20, (int)width, 30))
 		{
 			widget->SetTextColor(&text_color);
 		}
@@ -134,11 +134,11 @@ extern "C" void cube__StartMenuWidget__Draw(cube::StartMenuWidget * widget)
 		if (states[i] == cube::StartMenuWidget::HoverState::Continue)
 		{
 			int character_slot = widget->game->current_character_slot;
-			int character_count = widget->game->saved_characters.size();
+			int character_count = static_cast<int>(widget->game->saved_characters.size());
 
 			if (character_slot < 0 || character_slot >= character_count)
 			{
-				if (plasma::Widget::IsSquareHovered(&mouse_pos, 0, btn_y - 20, width, 30))
+				if (plasma::Widget::IsSquareHovered(&mouse_pos, 0, btn_y - 20, (int)width, 30))
 				{
 					widget->hover_state = cube::StartMenuWidget::HoverState::None;
 				}
@@ -146,7 +146,7 @@ extern "C" void cube__StartMenuWidget__Draw(cube::StartMenuWidget * widget)
 			}
 		}
 
-		widget->DrawString(&pos, &btn_txt[i], 0.5 * width, btn_y);
+		widget->DrawString(&pos, &btn_txt[i], 0.5f * width, (float)btn_y);
 	}
 
 	widget->SetScalableFont(&font1);
@@ -161,7 +161,7 @@ extern "C" void cube__StartMenuWidget__Draw(cube::StartMenuWidget * widget)
 	Matrix4 mat;
 	widget->node->LoadSomeMatrix(&mat);
 	float f9 = 10.0f;
-	float f1 = widget->game->height - 15;
+	float f1 = (float)widget->game->height - 15.0f;
 	float f8 = mat._24;
 	float f3 = f8;
 	f3 *= f1;

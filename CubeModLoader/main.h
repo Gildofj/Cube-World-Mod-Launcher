@@ -12,7 +12,7 @@ void PrintLoadedMods();
 dllname->name = GetProcAddress(dllname->handle, #name);\
             if (!dllname->name) {\
                 char ERROR_MESSAGE_POPUP[512] = {0};\
-                sprintf(ERROR_MESSAGE_POPUP, "%s does not export " #name ".\n", dllname->fileName.c_str());\
+                snprintf(ERROR_MESSAGE_POPUP, sizeof(ERROR_MESSAGE_POPUP), "%s does not export " #name ".\n", dllname->fileName.c_str());\
                 Popup("Error", ERROR_MESSAGE_POPUP);\
                 exit(1);\
             }

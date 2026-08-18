@@ -158,21 +158,21 @@ extern "C" void StartMods() {
 		int minorVersion = ((int(*)())dll->ModMinorVersion)();
 
 		if (majorVersion > MOD_MAJOR_VERSION) {
-			sprintf(msg, "%s has major version %d but requires %d. You should update your mod loader.\n", dll->fileName.c_str(), majorVersion, MOD_MAJOR_VERSION);
+			snprintf(msg, sizeof(msg), "%s has major version %d but requires %d. You should update your mod loader.\n", dll->fileName.c_str(), majorVersion, MOD_MAJOR_VERSION);
 			CW_LOG_ERROR("Mod compatibility error: %s", msg);
 			Popup("Error", msg);
 			exit(1);
 		}
 
 		if (majorVersion < MOD_MAJOR_VERSION) {
-			sprintf(msg, "%s has major version %d but requires %d. The mod author needs to update this mod to CWSDK %d.X\n", dll->fileName.c_str(), majorVersion, MOD_MAJOR_VERSION, MOD_MAJOR_VERSION);
+			snprintf(msg, sizeof(msg), "%s has major version %d but requires %d. The mod author needs to update this mod to CWSDK %d.X\n", dll->fileName.c_str(), majorVersion, MOD_MAJOR_VERSION, MOD_MAJOR_VERSION);
 			CW_LOG_ERROR("Mod compatibility error: %s", msg);
 			Popup("Error", msg);
 			exit(1);
 		}
 
 		if (minorVersion > MOD_MINOR_VERSION) {
-			sprintf(msg, "%s has minor version %d but requires %d or lower. You should update your mod loader.\n", dll->fileName.c_str(), minorVersion, MOD_MINOR_VERSION);
+			snprintf(msg, sizeof(msg), "%s has minor version %d but requires %d or lower. You should update your mod loader.\n", dll->fileName.c_str(), minorVersion, MOD_MINOR_VERSION);
 			CW_LOG_ERROR("Mod compatibility error: %s", msg);
 			Popup("Error", msg);
 			exit(1);

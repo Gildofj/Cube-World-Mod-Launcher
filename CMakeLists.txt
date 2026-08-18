@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    add_compile_definitions(_ITERATOR_DEBUG_LEVEL=0)
-    add_compile_options(/W3 /EHsc)
+    add_compile_definitions(_ITERATOR_DEBUG_LEVEL=0 _CRT_SECURE_NO_WARNINGS DIRECTINPUT_VERSION=0x0800)
+    add_compile_options(/W3 /EHsc /utf-8 /wd4828)
 endif()
 
 option(BUILD_LAUNCHER "Build CubeModLauncher executable" ON)
