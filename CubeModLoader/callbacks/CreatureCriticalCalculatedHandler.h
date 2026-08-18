@@ -1,7 +1,8 @@
 extern "C" int CreatureCriticalCalculatedHandler(cube::Creature* creature, float* critical) {
+    if (!creature || !critical) return 0;
 	for (uint8_t priority = 0; priority <= 4; priority += 1) {
 		for (DLL* dll : modDLLs) {
-			if (dll->mod->OnCreatureCriticalCalculatedPriority == (GenericMod::Priority)priority) {
+			if (dll && dll->mod && dll->mod->OnCreatureCriticalCalculatedPriority == (GenericMod::Priority)priority) {
 				dll->mod->OnCreatureCriticalCalculated(creature, critical);
 			}
 		}
@@ -9,40 +10,8 @@ extern "C" int CreatureCriticalCalculatedHandler(cube::Creature* creature, float
 	return 0;
 }
 
-__attribute__((naked)) void ASM_CreatureCriticalCalculatedHandler() {
-	asm(".intel_syntax noprefix \n"
+extern "C" void ASM_CreatureCriticalCalculatedHandler();
 
-		"movaps xmm0, xmm6 \n" //get result
-
-		PUSH_ALL
-
-		// put result on stack
-		"movq rax, xmm0 \n"
-		"push rax \n"
-		"lea rdx, [rsp] \n"
-
-		//Get creature
-		"mov rcx, rbx \n"
-
-		PREPARE_STACK
-		"call CreatureCriticalCalculatedHandler \n"
-		RESTORE_STACK
-
-		"pop rax \n"
-		"movq xmm0, rax \n"
-
-		POP_ALL
-
-		// original code
-		"mov rbx, [rsp+0x40] \n"
-		"movaps xmm6, [rsp+0x20] \n"
-		"mov rsi, [rsp+0x48] \n"
-		"add rsp, 0x30 \n"
-		"pop rdi \n"
-		"ret \n"
-			".att_syntax prefix \n"
-	);
-}
 void SetupCreatureCriticalCalculatedHandler() {
 	WriteFarJMP(Offset(base, 0x50E7A), (void*)&ASM_CreatureCriticalCalculatedHandler);
 }

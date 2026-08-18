@@ -5,6 +5,7 @@
 #include <string_view>
 #include <windows.h>
 #include "Process.h"
+#include "Logger.h"
 
 namespace fs = std::filesystem;
 
@@ -24,47 +25,51 @@ int Bail(int result) {
 }
 
 int main(int argc, char** argv) {
+    cw::Logger::Instance().Init("cube-world-logs", "launcher.log", true);
+
     std::string cubeExecutable(DEFAULT_CUBE_EXECUTABLE);
     if (argc >= 2) {
         cubeExecutable = argv[1];
     }
 
-    std::cout << "========================================\n";
-    std::cout << "  Cube World Mod Launcher (Modernized)  \n";
-    std::cout << "========================================\n\n";
+    CW_LOG_INFO("========================================");
+    CW_LOG_INFO("  Cube World Mod Launcher (Modernized)  ");
+    CW_LOG_INFO("========================================");
 
     // Validate target executable exists
     if (!FileExists(cubeExecutable)) {
-        std::cerr << "[Error] Target executable not found: " << cubeExecutable << "\n";
+        CW_LOG_ERROR("Target executable not found: %s", cubeExecutable.c_str());
         return Bail(1);
     }
 
     // Validate mod loader DLL exists
     if (!FileExists(MODLOADER_DLL)) {
-        std::cerr << "[Error] ModLoader DLL not found: " << MODLOADER_DLL << "\n";
+        CW_LOG_ERROR("ModLoader DLL not found: %s", std::string(MODLOADER_DLL).c_str());
         return Bail(1);
     }
 
     Process process(cubeExecutable);
 
-    std::cout << "[*] Starting " << cubeExecutable << " in suspended mode...\n";
+    CW_LOG_INFO("Starting %s in suspended mode...", cubeExecutable.c_str());
     if (!process.Create()) {
-        std::cerr << "[Error] Failed to create process. System error code: " << GetLastError() << "\n";
+        CW_LOG_ERROR("Failed to create process. System error code: %lu", GetLastError());
         return Bail(1);
     }
-    std::cout << "[+] Process created successfully (PID: " << process.GetProcessId() << ").\n\n";
+    CW_LOG_INFO("Process created successfully (PID: %lu).", process.GetProcessId());
 
-    std::cout << "[*] Injecting " << MODLOADER_DLL << " into remote process...\n";
+    CW_LOG_INFO("Injecting %s into remote process...", std::string(MODLOADER_DLL).c_str());
     if (!process.InjectDLL(MODLOADER_DLL)) {
-        std::cerr << "[Error] Injection failed.\n";
+        CW_LOG_ERROR("Injection failed.");
         return Bail(1);
     }
-    std::cout << "[+] Injection completed successfully.\n\n";
+    CW_LOG_INFO("Injection completed successfully.");
 
     // Resume main game thread
-    std::cout << "[*] Resuming target process execution...\n";
+    CW_LOG_INFO("Resuming target process execution...");
     process.Run();
-    std::cout << "[+] Cube World is now running.\n";
+    CW_LOG_INFO("Cube World is now running.");
 
+    cw::Logger::Instance().Shutdown();
     return 0;
 }
+

@@ -26,14 +26,17 @@ mod::ModWidget* mod::ModWidget::ctor(cube::Game* game, plasma::Node* node, plasm
 	this->SetScalableFont(&fontName);
 	this->Translate(100, 200, 1);
 
+	// Copy real vtable populated by BaseWidget::ctor and only override Draw (slot 1)
+	void** real_vtable = *(void***)this;
 	for (int i = 0; i < 43; ++i)
 	{
-		this->artificial_vtable[i] = VTABLE[i];
+		this->artificial_vtable[i] = (real_vtable && real_vtable[i]) ? real_vtable[i] : VTABLE[i];
 	}
+	this->artificial_vtable[1] = (void*)Draw;
 
 	// Manually set vtable
 	size_t* vptr = (size_t*)this;
-	*vptr = (size_t)this->artificial_vtable; //(size_t)CWOffset(0x46CED8);
+	*vptr = (size_t)this->artificial_vtable;
 
 	return this;
 }

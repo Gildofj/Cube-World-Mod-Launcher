@@ -1,17 +1,39 @@
-cmake_minimum_required (VERSION 3.8)
-project(project_CubeModLoader)
+cmake_minimum_required(VERSION 3.15)
+project(project_CubeModLoader LANGUAGES CXX)
+
 add_subdirectory(CWSDK)
-add_library (CubeModLoader SHARED 
+
+set(TRAMPOLINES_OBJ "${CMAKE_CURRENT_BINARY_DIR}/trampolines.obj")
+
+add_custom_command(
+    OUTPUT "${TRAMPOLINES_OBJ}"
+    COMMAND ml64.exe /c /Fo "${TRAMPOLINES_OBJ}" "${CMAKE_CURRENT_SOURCE_DIR}/trampolines.asm"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/trampolines.asm"
+    COMMENT "Assembling trampolines.asm with ml64"
+)
+
+add_library(CubeModLoader SHARED 
     crc.cpp
     DLL.cpp
     main.cpp
-    mutex.cpp "macros.h" "callbacks/gui/cube__StartMenuWidget__Draw.h" "callbacks/game/cube__Game__MouseUp.h" "callbacks/gui/cube__GUI__Load.h" "ModWidget.h" "ModWidget.cpp" "callbacks/world/cube__World__SpawnCreaturesMaybe.h" "callbacks/creature/cube__Creature__OnPlayerCombatDeath.h" "callbacks/gui/cube__CharacterPreviewWidget__Draw.h" "callbacks/creature/cube__Creature__OnCreatureDeath.h" "callbacks/creature/cube__Creature__OnPlayerDrownDeath.h" "callbacks/creature/cube__Creature__OnPlayerFallDeath.h"  "callbacks/game/cube__Game__Update.h" "callbacks/item/cube__Item__OnGetSellingPrice.h" "callbacks/creature/cube__Creature__CanEquipItem.h" "callbacks/item/cube__Item__OnGetGoldBagValue.h")
-target_link_libraries (CubeModLoader LINK_PUBLIC CWSDK)
-target_compile_definitions(CubeModLoader PRIVATE MODLOADER)
+    mutex.cpp
+    ModWidget.cpp
+    Logger.cpp
+    CrashHandler.cpp
+    "${TRAMPOLINES_OBJ}"
+)
+
+target_include_directories(CubeModLoader PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/callbacks
+)
+
+target_link_libraries(CubeModLoader LINK_PUBLIC CWSDK dbghelp)
+target_compile_definitions(CubeModLoader PRIVATE MODLOADER _ITERATOR_DEBUG_LEVEL=0)
 target_compile_definitions(CWSDK PRIVATE MODLOADER)
 
-if(MINGW OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_link_options(CubeModLoader PRIVATE -static -static-libgcc -static-libstdc++)
+if(MSVC)
+    set_property(TARGET CubeModLoader PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
 add_custom_command(TARGET CubeModLoader POST_BUILD

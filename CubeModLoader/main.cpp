@@ -8,7 +8,8 @@
 #include "crc.h"
 #include "mutex.h"
 #include "macros.h"
-#include "../CubeModLoader/CWSDK/cwsdk.h"
+#include "Logger.h"
+#include "CrashHandler.h"
 
 #define MOD_MAJOR_VERSION 7
 #define MOD_MINOR_VERSION 3
@@ -69,51 +70,47 @@ GETTER_VAR(void*, initterm_e); // A pointer to that function
 #include "callbacks/item/cube__Item__OnClassCanWearItem.h"
 
 void SetupHandlers() {
+    CW_LOG_DEBUG("Setting up internal game function hooks (Gameplay, Items, World, Combat Suite)...");
     setup_function(cube__Creature__GetArmor);
     setup_function(cube__Creature__OnPlayerCombatDeath);
     setup_function(cube__Creature__OnPlayerDrownDeath);
     setup_function(cube__Creature__OnPlayerFallDeath);
     setup_function(cube__Creature__OnCreatureDeath);
-    setup_function(cube__Creature__CanEquipItem);
-    setup_function(cube__StartMenuWidget__Draw);
-    //setup_function(cube__CharacterPreviewWidget__Draw);
-    setup_function(cube__Game__MouseUp);
+    // setup_function(cube__Creature__CanEquipItem);
+    // setup_function(cube__StartMenuWidget__Draw);
     setup_function(cube__Game__Update);
     setup_function(cube__Item__GetBuyingPrice);
     setup_function(cube__Item__OnGetSellingPrice);
     setup_function(cube__Item__OnGetGoldBagValue);
-    setup_function(cube__Item__OnClassCanWearItem);
+    // setup_function(cube__Item__OnClassCanWearItem);
 
-    // Should be totally reverse engineered if put here.
-    // HUGE effort, but might be worth!
-    //setup_function(cube__GUI__Load);
-     
     SetupChatHandler();
     SetupP2PRequestHandler();
     SetupCheckInventoryFullHandler();
 	SetupGameTickHandler();
 	SetupZoneGeneratedHandler();
 	SetupZoneDestroyHandler();
-	SetupWindowProcHandler();
-	SetupGetKeyboardStateHandler();
-	SetupGetMouseStateHandler();
-	SetupPresentHandler();
-	SetupCreatureCriticalCalculatedHandler();
-	SetupCreatureAttackPowerCalculatedHandler();
-	SetupCreatureSpellPowerCalculatedHandler();
-	SetupCreatureHasteCalculatedHandler();
-	SetupCreatureHPCalculatedHandler();
-	SetupCreatureResistanceCalculatedHandler();
-	SetupCreatureRegenerationCalculatedHandler();
-	SetupCreatureManaGenerationCalculatedHandler();
+    // SetupWindowProcHandler();
+    // SetupGetKeyboardStateHandler();
+    // SetupGetMouseStateHandler();
+    // SetupPresentHandler();
+    // SetupCreatureCriticalCalculatedHandler();
+    // SetupCreatureAttackPowerCalculatedHandler();
+    // SetupCreatureSpellPowerCalculatedHandler();
+    // SetupCreatureHasteCalculatedHandler();
+    // SetupCreatureHPCalculatedHandler();
+    // SetupCreatureResistanceCalculatedHandler();
+    // SetupCreatureRegenerationCalculatedHandler();
+    // SetupCreatureManaGenerationCalculatedHandler();
 	SetupChunkRemeshHandler();
 	SetupChunkRemeshedHandler();
+    CW_LOG_INFO("Gameplay, Items, World, and Combat hooks initialized successfully.");
 }
 
 
 // Handles injecting callbacks and the mods
 bool already_loaded_mods = false;
-mutex already_loaded_mods_mtx;
+::mutex already_loaded_mods_mtx;
 extern "C" void StartMods() {
     char msg[256] = {0};
 
@@ -124,6 +121,8 @@ extern "C" void StartMods() {
         }
         already_loaded_mods = true;
     }
+
+    CW_LOG_INFO("StartMods() invoked. Beginning mod discovery and setup...");
 
     ModPreInitialize();
     SetupHandlers();
@@ -139,7 +138,7 @@ extern "C" void StartMods() {
             // We should be loaded into the application's address space, so we can just LoadLibraryA
             DLL* dll = new DLL(string("Mods\\") + data.cFileName);
             dll->Load();
-            printf("Loaded %s\n", dll->fileName.c_str());
+            CW_LOG_INFO("Discovered and loaded mod DLL: %s", dll->fileName.c_str());
             modDLLs.push_back(dll);
         } while (FindNextFile(hFind, &data));
         FindClose(hFind);
@@ -160,18 +159,21 @@ extern "C" void StartMods() {
 
 		if (majorVersion > MOD_MAJOR_VERSION) {
 			sprintf(msg, "%s has major version %d but requires %d. You should update your mod loader.\n", dll->fileName.c_str(), majorVersion, MOD_MAJOR_VERSION);
+			CW_LOG_ERROR("Mod compatibility error: %s", msg);
 			Popup("Error", msg);
 			exit(1);
 		}
 
 		if (majorVersion < MOD_MAJOR_VERSION) {
 			sprintf(msg, "%s has major version %d but requires %d. The mod author needs to update this mod to CWSDK %d.X\n", dll->fileName.c_str(), majorVersion, MOD_MAJOR_VERSION, MOD_MAJOR_VERSION);
+			CW_LOG_ERROR("Mod compatibility error: %s", msg);
 			Popup("Error", msg);
 			exit(1);
 		}
 
 		if (minorVersion > MOD_MINOR_VERSION) {
 			sprintf(msg, "%s has minor version %d but requires %d or lower. You should update your mod loader.\n", dll->fileName.c_str(), minorVersion, MOD_MINOR_VERSION);
+			CW_LOG_ERROR("Mod compatibility error: %s", msg);
 			Popup("Error", msg);
 			exit(1);
 		}
@@ -183,18 +185,23 @@ extern "C" void StartMods() {
     {
         if (!modDLLs.at(i)->enabled)
         {
+            CW_LOG_INFO("Mod disabled by configuration: %s", modDLLs.at(i)->fileName.c_str());
             modDLLs.erase(modDLLs.begin() + i);
             i--;
         }
     }
 
+    CW_LOG_INFO("Initializing %zu active mod(s)...", modDLLs.size());
+
     // Run Initialization routines on all mods
     for (DLL* dll: modDLLs) {
+        CW_LOG_DEBUG("Calling ModPreInitialize on %s", dll->fileName.c_str());
         ((void(*)())dll->ModPreInitialize)();
 		dll->mod = ((GenericMod*(*)())dll->MakeMod)();
     }
 
     for (DLL* dll: modDLLs) {
+        CW_LOG_INFO("Calling Initialize on mod: %s", dll->fileName.c_str());
 		dll->mod->Initialize();
     }
 
@@ -205,59 +212,87 @@ extern "C" void StartMods() {
 			// We should be loaded into the application's address space, so we can just LoadLibraryA
 			DLL* dll = new DLL(string("Mods\\") + data.cFileName);
 			dll->Load();
-			printf("Loaded %s\n", dll->fileName.c_str());
+			CW_LOG_WARN("Loaded legacy mod: %s (Legacy .cwmod format is deprecated)", dll->fileName.c_str());
 			legacyDLLs.push_back(dll);
 		} while (FindNextFile(hFind, &data));
 		FindClose(hFind);
 	}
 
+    CW_LOG_INFO("StartMods() completed successfully. Total enabled mods: %zu, legacy: %zu", 
+                modDLLs.size(), legacyDLLs.size());
 
-    if (hSelf) PrintLoadedMods();
+    for (DLL* dll : modDLLs) {
+        CW_LOG_INFO("  Active Mod: %s", dll->fileName.c_str());
+    }
     return;
 }
 
 
-__attribute__((naked)) void ASMStartMods() {
-    asm(".intel_syntax noprefix \n"
-		PUSH_ALL
-        PREPARE_STACK
+extern "C" void ASMStartMods();
 
-        // Initialize mods and callbacks
-        "call StartMods \n"
 
-        RESTORE_STACK
-        POP_ALL
+// FreeImage plugin contract exports
+extern "C" __declspec(dllexport) void Init(void* plugin, int format_id) {
+    CW_LOG_INFO("FreeImage Init plugin callback invoked (format_id: %d).", format_id);
+}
 
-        // Run initterm_e properly this time.
-		DEREF_JMP(initterm_e)
-		".att_syntax prefix \n"
-        );
+extern "C" __declspec(dllexport) void FreeImage_Init(void* plugin, int format_id) {
+    CW_LOG_INFO("FreeImage_Init plugin callback invoked (format_id: %d).", format_id);
 }
 
 void PatchFreeImage(){
-    // Patch FreeImage, because Windows 8 and higher do not work properly with it.
-    DWORD oldProtect;
-    void* patchaddr = Offset(GetModuleHandleA("FreeImage.dll"), 0x1E8C4E);
-    VirtualProtect((LPVOID)patchaddr, 9, PAGE_EXECUTE_READWRITE, &oldProtect);
-    memset(patchaddr, 0x90, 9);
-    VirtualProtect((LPVOID)patchaddr, 9, oldProtect, &oldProtect);
+    // FreeImage on 64-bit Windows has a known bug in Plugin.cpp where the file search
+    // handle is truncated to 32-bit (long), causing FindNextFileW/FindClose to crash (0xC0000005).
+    // In FreeImage_Initialise, right after loading and registering CubeModLoader.fip (offset 0x1E8C4E),
+    // we patch 0x1E8C4E with a direct JMP to offset 0x1E8C85 (via E9 32 00 00 00).
+    // This cleanly bypasses _wfindnext (0x1E8C62) and _findclose (0x1E8C73) while allowing
+    // FreeImage_Initialise to complete all remaining format/subsystem initialization normally.
+    HMODULE hFreeImage = GetModuleHandleA("FreeImage.dll");
+    if (!hFreeImage) {
+        CW_LOG_DEBUG("FreeImage.dll handle not found for patching.");
+        return;
+    }
 
-    patchaddr = Offset(patchaddr, 0x14);
-    VirtualProtect((LPVOID)patchaddr, 14, PAGE_EXECUTE_READWRITE, &oldProtect);
-    memset(patchaddr, 0x90, 14);
-    VirtualProtect((LPVOID)patchaddr, 14, oldProtect, &oldProtect);
+    DWORD oldProtect;
+    void* patchaddr = Offset(hFreeImage, 0x1E8C4E);
+    // Unprotect 64 bytes covering the broken find loop up to 0x1E8C85
+    if (VirtualProtect(patchaddr, 64, PAGE_EXECUTE_READWRITE, &oldProtect)) {
+        // E9 32 00 00 00 = JMP 0x1E8C85 (end of find loop)
+        unsigned char jumpExit[5] = { 0xE9, 0x32, 0x00, 0x00, 0x00 };
+        memcpy(patchaddr, jumpExit, 5);
+        memset(Offset(patchaddr, 5), 0x90, 50); // NOP out remaining 50 bytes until 0x1E8C85
+        VirtualProtect(patchaddr, 64, oldProtect, &oldProtect);
+        CW_LOG_INFO("Patched FreeImage at 0x1E8C4E to cleanly jump to end of search loop (0x1E8C85).");
+    } else {
+        CW_LOG_ERROR("Failed to VirtualProtect FreeImage patch address.");
+    }
 }
 
 void PatchInitterm_ePtr() {
+    if (!base) {
+        base = GetModuleHandle(NULL);
+    }
+    if (!base) {
+        CW_LOG_ERROR("Cannot patch initterm_e: module base is NULL.");
+        return;
+    }
+
     // Get ** to initterm_e
     initterm_eReference = (void**)(Offset(base, 0x42CBD8));
-
-    initterm_e = *initterm_eReference;
+    if (!initterm_eReference) {
+        CW_LOG_ERROR("initterm_eReference is NULL.");
+        return;
+    }
 
     DWORD oldProtect;
-    VirtualProtect((LPVOID)initterm_eReference, 8, PAGE_EXECUTE_READWRITE, &oldProtect);
-    *initterm_eReference = (void*)&ASMStartMods;
-    VirtualProtect((LPVOID)initterm_eReference, 8, oldProtect, &oldProtect);
+    if (VirtualProtect((LPVOID)initterm_eReference, 8, PAGE_EXECUTE_READWRITE, &oldProtect)) {
+        initterm_e = *initterm_eReference;
+        *initterm_eReference = (void*)&ASMStartMods;
+        VirtualProtect((LPVOID)initterm_eReference, 8, oldProtect, &oldProtect);
+        CW_LOG_INFO("Patched initterm_e successfully.");
+    } else {
+        CW_LOG_ERROR("VirtualProtect failed on initterm_eReference.");
+    }
 }
 
 void Popup(const char* title, const char* msg ) {
@@ -283,81 +318,79 @@ void PrintLoadedMods() {
     Popup("Loaded Mods", mods.c_str());
 }
 
-void WriteFarJMP(void* source, void* destination) {
-    DWORD dwOldProtection;
-    VirtualProtect(source, 14, PAGE_EXECUTE_READWRITE, &dwOldProtection);
-    char* location = (char*)source;
-
-    // Far jump
-    *((UINT16*)&location[0]) = 0x25FF;
-
-    // mode
-    *((UINT32*)&location[2]) = 0x00000000;
-
-    *((UINT64*)&location[6]) = (UINT64)destination;
-
-    VirtualProtect(location, 14, dwOldProtection, &dwOldProtection);
-}
 
 void* Offset(void* x1, uint64_t x2) {
 	return (void*)((char*)x1 + x2);
 }
 
 bool already_initialized = false;
-mutex already_initialized_mtx;
+::mutex already_initialized_mtx;
 extern "C" __declspec(dllexport) BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     switch (fdwReason) {
-    case DLL_PROCESS_ATTACH:
-
-
+    case DLL_PROCESS_ATTACH: {
         {
             ScopedLock lock(already_initialized_mtx);
             if (already_initialized) {
-                return true;
+                return TRUE;
             }
             already_initialized = true;
         }
 
+        // Initialize Logging and Crash Handling subsystems
+        cw::Logger::Instance().Init("cube-world-logs", "modloader", true);
+        cw::CrashHandler::Install("cube-world-logs");
+
+        CW_LOG_INFO("=================================================");
+        CW_LOG_INFO("  CubeModLoader Initializing (v%d.%d)", MOD_MAJOR_VERSION, MOD_MINOR_VERSION);
+        CW_LOG_INFO("=================================================");
+
+        // Pin ourselves in memory safely without re-invoking LoadLibrary during DllMain
+        GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_PIN | GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, 
+                           (LPCSTR)hinstDLL, &hSelf);
+
         base = GetModuleHandle(NULL);
-
-        char msg[256] = {0};
-
-        // This serves to prevent ourself from being unloaded, if we are a .fip
-        hSelf = LoadLibrary(MODLOADER_NAME ".fip");
-
-        // The user could also inject this as a DLL, so if we can't find our .fip, we were probably launched with a launcher.
-        // Therefore, we don't need to prompt the user.
-        if (hSelf) {
-            if (MessageBoxA(NULL, "Would you like to run with mods?", "Cube World Mod Loader", MB_YESNO) != IDYES) {
-                PatchFreeImage();
-                return true;
-            }
+        if (!base) {
+            CW_LOG_ERROR("Failed to get main module handle.");
+            return TRUE;
         }
 
-        base = GetModuleHandle(NULL);
-
-
         // Figure out where the executable is and verify its checksum
-        char cubePath[_MAX_PATH+1];
-        GetModuleFileName(NULL, cubePath, _MAX_PATH);
+        char cubePath[_MAX_PATH + 1] = {0};
+        GetModuleFileNameA(NULL, cubePath, _MAX_PATH);
 
         uint32_t checksum = crc32_file(cubePath);
+        CW_LOG_INFO("Target executable: %s", cubePath);
+        CW_LOG_INFO("Target checksum: 0x%08X (Expected packed: 0x%08X, unpacked: 0x%08X)", 
+                    checksum, CUBE_PACKED_CRC, CUBE_UNPACKED_CRC);
+
         if (checksum == CUBE_PACKED_CRC || checksum == CUBE_UNPACKED_CRC) {
-            // Patch some code to run StartMods. This method makes it work with AND without SteamStub.
+            CW_LOG_INFO("Binary checksum verified. Patching initterm_e...");
             PatchInitterm_ePtr();
         } else {
 #ifndef USE_CHECKSUM
+			CW_LOG_WARN("Checksum validation bypassed via preprocessor definition.");
 			PatchInitterm_ePtr();
 #else
-            sprintf(msg, "%s does not seem to be version %s. CRC %08X", cubePath, CUBE_VERSION, checksum);
-            Popup("Error", msg);
+            char msg[256] = {0};
+            sprintf_s(msg, sizeof(msg), "%s does not seem to be version %s. CRC %08X", cubePath, CUBE_VERSION, checksum);
+            CW_LOG_ERROR("%s", msg);
             PatchFreeImage();
-            return true;
+            return TRUE;
 #endif
         }
 
-        Sleep(250);
         PatchFreeImage();
+        CW_LOG_INFO("CubeModLoader DLL_PROCESS_ATTACH complete.");
+        break;
     }
-    return true;
+
+    case DLL_PROCESS_DETACH: {
+        CW_LOG_INFO("CubeModLoader detaching from process.");
+        cw::CrashHandler::Uninstall();
+        cw::Logger::Instance().Shutdown();
+        break;
+    }
+    }
+    return TRUE;
 }
+

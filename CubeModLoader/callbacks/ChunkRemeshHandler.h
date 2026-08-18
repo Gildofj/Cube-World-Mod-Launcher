@@ -1,7 +1,8 @@
 extern "C" int ChunkRemeshHandler(cube::Zone* zone) {
+    if (!zone) return 0;
 	for (uint8_t priority = 0; priority <= 4; priority += 1) {
 		for (DLL* dll : modDLLs) {
-			if (dll->mod->OnChunkRemeshPriority == (GenericMod::Priority)priority) {
+			if (dll && dll->mod && dll->mod->OnChunkRemeshPriority == (GenericMod::Priority)priority) {
 				dll->mod->OnChunkRemesh(zone);
 			}
 		}
@@ -10,30 +11,8 @@ extern "C" int ChunkRemeshHandler(cube::Zone* zone) {
 }
 
 GETTER_VAR(void*, ASM_ChunkRemeshHandler_jmpback);
-__attribute__((naked)) void ASM_ChunkRemeshHandler() {
-	asm(".intel_syntax noprefix \n"
-		PUSH_ALL
+extern "C" void ASM_ChunkRemeshHandler();
 
-		PREPARE_STACK
-
-		"mov rcx, r13 \n"
-		"call ChunkRemeshHandler \n"
-
-		RESTORE_STACK
-
-
-		POP_ALL
-
-		// original code
-		"lea ebx, [r14+0x40] \n"
-		"mov [rbp-0x54], ebx \n"
-		"lea edi, [r15+0x40] \n"
-		"mov [rbp-0x64], edi \n"
-
-		DEREF_JMP(ASM_ChunkRemeshHandler_jmpback)
-			".att_syntax prefix \n"
-	);
-}
 void SetupChunkRemeshHandler() {
 	WriteFarJMP(Offset(base, 0xE969C), (void*)&ASM_ChunkRemeshHandler);
 	ASM_ChunkRemeshHandler_jmpback = Offset(base, 0xE96AA);

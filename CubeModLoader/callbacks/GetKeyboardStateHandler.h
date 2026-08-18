@@ -1,7 +1,8 @@
 extern "C" int GetKeyboardStateHandler(BYTE* diKeys) {
+    if (!diKeys) return 0;
 	for (uint8_t priority = 0; priority <= 4; priority += 1) {
 		for (DLL* dll : modDLLs) {
-			if (dll->mod->OnGetKeyboardStatePriority == (GenericMod::Priority)priority) {
+			if (dll && dll->mod && dll->mod->OnGetKeyboardStatePriority == (GenericMod::Priority)priority) {
 				dll->mod->OnGetKeyboardState(diKeys);
 			}
 		}
@@ -10,29 +11,8 @@ extern "C" int GetKeyboardStateHandler(BYTE* diKeys) {
 }
 
 GETTER_VAR(void*, ASM_GetKeyboardStateHandler_jmpback);
-__attribute__((naked)) void ASM_GetKeyboardStateHandler() {
-    asm(".intel_syntax noprefix \n"
-		// original code
-		"mov rcx, qword ptr [rbp-0x50] \n"
-		"mov rax, [rcx] \n"
-		"lea r8, [rbp+0x480] \n"
-		"mov edx, r14d \n"
-		"call qword ptr [rax+0x48] \n" // call to the actual function, or at least steam's hook of it.
+extern "C" void ASM_GetKeyboardStateHandler();
 
-
-		PUSH_ALL
-		"lea rcx, [rbp+0x480] \n" // diKeys
-        PREPARE_STACK
-
-        "call GetKeyboardStateHandler \n"
-
-        RESTORE_STACK
-        POP_ALL
-
-        DEREF_JMP(ASM_GetKeyboardStateHandler_jmpback)
-       		".att_syntax prefix \n"
-	);
-}
 void SetupGetKeyboardStateHandler() {
     WriteFarJMP(Offset(base, 0x13664B), (void*)&ASM_GetKeyboardStateHandler);
 	ASM_GetKeyboardStateHandler_jmpback = Offset(base, 0x13665F);

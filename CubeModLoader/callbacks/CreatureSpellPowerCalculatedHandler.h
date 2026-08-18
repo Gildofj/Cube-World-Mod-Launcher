@@ -1,7 +1,8 @@
 extern "C" int CreatureSpellPowerCalculatedHandler(cube::Creature* creature, float* power) {
+    if (!creature || !power) return 0;
 	for (uint8_t priority = 0; priority <= 4; priority += 1) {
 		for (DLL* dll : modDLLs) {
-			if (dll->mod->OnCreatureSpellPowerCalculatedPriority == (GenericMod::Priority)priority) {
+			if (dll && dll->mod && dll->mod->OnCreatureSpellPowerCalculatedPriority == (GenericMod::Priority)priority) {
 				dll->mod->OnCreatureSpellPowerCalculated(creature, power);
 			}
 		}
@@ -9,38 +10,8 @@ extern "C" int CreatureSpellPowerCalculatedHandler(cube::Creature* creature, flo
 	return 0;
 }
 
-__attribute__((naked)) void ASM_CreatureSpellPowerCalculatedHandler() {
-	asm(".intel_syntax noprefix \n"
-		PUSH_ALL
+extern "C" void ASM_CreatureSpellPowerCalculatedHandler();
 
-		// put result on stack
-		"movq rax, xmm0 \n"
-		"push rax \n"
-		"lea rdx, [rsp] \n"
-
-		//Get creature
-		"mov rcx, rsi \n"
-
-		PREPARE_STACK
-		"call CreatureSpellPowerCalculatedHandler \n"
-		RESTORE_STACK
-
-		"pop rax \n"
-		"movq xmm0, rax \n"
-
-		POP_ALL
-
-		// original code
-		"mov rbp, [r11+0x30] \n"
-		"movaps xmm6, [rsp+0x60] \n"
-		"mov rsp, r11 \n"
-		"pop r14 \n"
-		"pop rdi \n"
-		"pop rsi \n"
-		"ret \n"
-			".att_syntax prefix \n"
-	);
-}
 void SetupCreatureSpellPowerCalculatedHandler() {
 	WriteFarJMP(Offset(base, 0x65E84), (void*)&ASM_CreatureSpellPowerCalculatedHandler);
 }

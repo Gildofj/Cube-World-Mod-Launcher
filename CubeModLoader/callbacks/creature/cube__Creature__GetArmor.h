@@ -2,6 +2,10 @@
 
 extern "C" float cube__Creature__GetArmor(cube::Creature * creature)
 {
+    if (!creature) {
+        return 0.0f;
+    }
+
     float armor = 0;
 
     cube::Item* chest = &creature->entity_data.equipment.chest;
@@ -53,7 +57,7 @@ extern "C" float cube__Creature__GetArmor(cube::Creature * creature)
 
     for (uint8_t priority = 0; priority <= 4; priority += 1) {
         for (DLL* dll : modDLLs) {
-            if (dll->mod->OnCreatureArmorCalculatedPriority == (GenericMod::Priority)priority) {
+            if (dll && dll->mod && dll->mod->OnCreatureArmorCalculatedPriority == (GenericMod::Priority)priority) {
                 dll->mod->OnCreatureArmorCalculated(creature, &armor);
             }
         }

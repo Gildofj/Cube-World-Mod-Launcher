@@ -3,6 +3,7 @@
 
 extern "C" bool cube__Item__OnClassCanWearItem (cube::Item* item, int classType)
 {
+    if (!item) return false;
 	bool retval = false;
 
 	char category = item->category;
@@ -66,7 +67,7 @@ extern "C" bool cube__Item__OnClassCanWearItem (cube::Item* item, int classType)
 	}
 	else // Chest, gloves, boots and shoulders
 	{
-		switch (item->material - 1)
+		switch (item->material)
 		{
 		case cube::Item::MaterialType::Iron:
 		case 3: // Undefined
@@ -102,7 +103,7 @@ extern "C" bool cube__Item__OnClassCanWearItem (cube::Item* item, int classType)
 
 	for (uint8_t priority = 0; priority <= 4; priority += 1) {
 		for (DLL* dll : modDLLs) {
-			if (dll->mod->OnClassCanWearItemPriority == (GenericMod::Priority)priority) {
+			if (dll && dll->mod && dll->mod->OnClassCanWearItemPriority == (GenericMod::Priority)priority) {
 				dll->mod->OnClassCanWearItem(item, classType, &retval);
 			}
 		}

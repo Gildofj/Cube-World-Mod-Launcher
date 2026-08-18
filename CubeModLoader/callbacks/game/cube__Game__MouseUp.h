@@ -4,18 +4,23 @@
 
 extern "C" void cube__Game__MouseUp(cube::Game* game, cube::MouseButton mouse_button)
 {
+    if (!game || !game->plasma_engine || !game->plasma_engine->root_node) return;
 	std::wstring wstr_mod_node(L"mod-node");
 	plasma::Node* mod_node = game->plasma_engine->root_node->FindChildByName(&wstr_mod_node);
 	if (mod_node != nullptr && mod_node->IsVisible())
 	{
 		mod::ModWidget* widget = (mod::ModWidget*)mod_node->widget1;
-		widget->MouseUp(mouse_button);
+        if (widget) {
+            widget->MouseUp(mouse_button);
+        }
 		return;
 	}
 
-	if (game->gui.startmenu_node->display->IsVisible() && game->gui.startmenu_buttons_node->display->IsVisible())
+	if (game->gui.startmenu_node && game->gui.startmenu_node->display && 
+        game->gui.startmenu_buttons_node && game->gui.startmenu_buttons_node->display &&
+        game->gui.startmenu_node->display->IsVisible() && game->gui.startmenu_buttons_node->display->IsVisible())
 	{
-		if (mouse_button == cube::MouseButton::LeftMouseButton)
+		if (mouse_button == cube::MouseButton::LeftMouseButton && game->gui.start_menu_widget)
 		{	
 			switch (game->gui.start_menu_widget->hover_state)
 			{
@@ -55,18 +60,8 @@ extern "C" void cube__Game__MouseUp(cube::Game* game, cube::MouseButton mouse_bu
 }
 
 GETTER_VAR(void*, ASM_cube__Game__MouseUp_jmpback);
-__attribute__((naked)) void ASM_cube__Game__MouseUp() {
-	asm(".intel_syntax noprefix \n"
-		PUSH_ALL
-		PREPARE_STACK
-		"call cube__Game__MouseUp \n"
-		RESTORE_STACK
-		POP_ALL
-		"xor r12d, r12d \n"
-		DEREF_JMP(ASM_cube__Game__MouseUp_jmpback)
-			".att_syntax prefix \n"
-	);
-}
+extern "C" void ASM_cube__Game__MouseUp();
+
 void setup_cube__Game__MouseUp() {
 		WriteFarJMP(CWOffset(0x96621), (void*)&ASM_cube__Game__MouseUp);
 		ASM_cube__Game__MouseUp_jmpback = CWOffset(0x9675D);

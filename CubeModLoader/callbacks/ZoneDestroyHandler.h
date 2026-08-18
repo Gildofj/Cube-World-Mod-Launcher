@@ -1,7 +1,8 @@
 extern "C" int ZoneDestroyHandler(cube::Zone* zone) {
+    if (!zone) return 0;
 	for (uint8_t priority = 0; priority <= 4; priority += 1) {
 		for (DLL* dll : modDLLs) {
-			if (dll->mod->OnZoneDestroyPriority == (GenericMod::Priority)priority) {
+			if (dll && dll->mod && dll->mod->OnZoneDestroyPriority == (GenericMod::Priority)priority) {
 				dll->mod->OnZoneDestroy(zone);
 			}
 		}
@@ -10,27 +11,8 @@ extern "C" int ZoneDestroyHandler(cube::Zone* zone) {
 }
 
 GETTER_VAR(void*, ASM_ZoneDestroyHandler_jmpback);
-__attribute__((naked)) void ASM_ZoneDestroyHandler() {
-    asm(".intel_syntax noprefix \n"
-		PUSH_ALL
-        PREPARE_STACK
+extern "C" void ASM_ZoneDestroyHandler();
 
-        "call ZoneDestroyHandler \n"
-
-        RESTORE_STACK
-        POP_ALL
-
-        // original code
-        "push rsi \n"
-        "push rdi \n"
-        "push r14 \n"
-		"sub rsp, 0x30 \n"
-		"mov qword ptr [rsp+0x20], 0x0FFFFFFFFFFFFFFFE \n"
-
-        DEREF_JMP(ASM_ZoneDestroyHandler_jmpback)
-       		".att_syntax prefix \n"
-	);
-}
 void SetupZoneDestroyHandler() {
     WriteFarJMP(Offset(base, 0x2F9940), (void*)&ASM_ZoneDestroyHandler);
 	ASM_ZoneDestroyHandler_jmpback = Offset(base, 0x2F9952);

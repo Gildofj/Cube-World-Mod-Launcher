@@ -16,13 +16,23 @@ set(TEST_SOURCES
     unit/test_mutex.cpp
     unit/test_trampoline.cpp
     unit/test_launcher_process.cpp
+    unit/test_logger.cpp
+    unit/test_crash_handler.cpp
     integration/test_mod_lifecycle.cpp
     integration/test_fault_injection.cpp
     ../CubeModLoader/crc.cpp
     ../CubeModLoader/mutex.cpp
+    ../CubeModLoader/Logger.cpp
+    ../CubeModLoader/CrashHandler.cpp
 )
 
 add_executable(test_runner ${TEST_SOURCES})
+target_link_libraries(test_runner PRIVATE dbghelp)
+
+if(MSVC)
+    target_compile_definitions(test_runner PRIVATE _ITERATOR_DEBUG_LEVEL=0)
+    set_property(TARGET test_runner PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 include(CTest)
 enable_testing()

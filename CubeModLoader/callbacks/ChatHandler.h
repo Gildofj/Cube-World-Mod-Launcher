@@ -1,7 +1,8 @@
 extern "C" int ChatHandler(std::wstring* msg) {
+    if (!msg) return 0;
 	for (uint8_t priority = 0; priority <= 4; priority += 1) {
 		for (DLL* dll : modDLLs) {
-			if (dll->mod->OnChatPriority == (GenericMod::Priority)priority) {
+			if (dll && dll->mod && dll->mod->OnChatPriority == (GenericMod::Priority)priority) {
 				if (dll->mod->OnChat(msg)) {
 					return 1;
 				}
@@ -13,40 +14,8 @@ extern "C" int ChatHandler(std::wstring* msg) {
 
 GETTER_VAR(void*, ASMChatHandler_jmpback);
 GETTER_VAR(void*, ASMChatHandler_bail);
-__attribute__((naked)) void ASMChatHandler() {
-	asm(".intel_syntax noprefix \n"
-		PUSH_ALL
+extern "C" void ASMChatHandler();
 
-		"mov rcx, rbx \n" //The (std::wstring*) message
-
-		PREPARE_STACK
-
-		"call ChatHandler \n"
-
-		RESTORE_STACK
-
-		// Did the handler return true?
-		"test al, al \n"
-		"jnz bail \n"
-
-		POP_ALL
-
-		// original code
-		"mov [rsp+0x48], rax \n"
-		"mov r8, [rbx+0x10] \n"
-		"cmp qword ptr [rbx+0x18], 8 \n"
-		"jb 1f \n"
-		"mov rbx, [rbx] \n"
-		"1: \n"
-		DEREF_JMP(ASMChatHandler_jmpback)
-
-
-		"bail: \n"
-		POP_ALL
-		DEREF_JMP(ASMChatHandler_bail)
-			".att_syntax prefix \n"
-	);
-}
 void SetupChatHandler() {
 	WriteFarJMP(Offset(base, 0x97175), (void*)&ASMChatHandler);
 	ASMChatHandler_jmpback = Offset(base, 0x97188);
