@@ -9,7 +9,7 @@
 
 A robust DLL injection launcher, low-level runtime hook engine, and in-game mod management framework for **Cube World** (Steam release `1.0.0-1`, x86_64).
 
-Powered by the **[CubeForge SDK](https://github.com/Gildofj/CWSDK)**.
+Powered by the **[CubeForge SDK](https://github.com/Gildofj/cubeforge.sdk)**.
 
 ---
 
@@ -50,7 +50,7 @@ CubeForge-Loader/
 
 ### Installation
 
-1. Download the latest release from the [Releases](https://github.com/Gildofj/Cube-World-Mod-Launcher/releases) section.
+1. Download the latest release from the [Releases](https://github.com/Gildofj/cubeforge.loader/releases) section.
 2. Place `CubeModLoader.fip` (or `CubeModLauncher.exe` and `CubeModLoader.dll`) into your Cube World root directory (same folder as `cubeworld.exe`).
 3. Create a folder named `Mods` in the game directory.
 4. Place your mod `.dll` files into the `Mods/` directory.
@@ -69,14 +69,14 @@ CubeForge-Loader/
 * **OS**: Windows 10/11 64-bit
 * **Compiler**: Visual Studio 2022 (MSVC x64) or MinGW-w64 (`x86_64-w64-mingw32-g++`)
 * **Build System**: CMake 3.20+
-* **Dependencies**: [CubeForge SDK](https://github.com/Gildofj/CWSDK)
+* **Dependencies**: [CubeForge SDK](https://github.com/Gildofj/cubeforge.sdk)
 
 ### Build Instructions (CMake / Visual Studio)
 
 ```bash
 # 1. Clone with submodules
-git clone --recurse-submodules https://github.com/Gildofj/Cube-World-Mod-Launcher.git
-cd Cube-World-Mod-Launcher
+git clone --recurse-submodules https://github.com/Gildofj/cubeforge.loader.git
+cd cubeforge.loader
 
 # 2. Configure & Build via CMake
 cmake -B build -S . -DCMAKE_BUILD_TYPE=Release

@@ -53,8 +53,8 @@ Cube-World-Mod-Launcher/
 To clone the repository and initialize the nested `CWSDK` submodule:
 
 ```bash
-git clone --recurse-submodules https://github.com/ChrisMiuchiz/Cube-World-Mod-Launcher.git
-cd Cube-World-Mod-Launcher
+git clone --recurse-submodules https://github.com/Gildofj/cubeforge.loader.git
+cd cubeforge.loader
 ```
 
 If already cloned without submodules:
