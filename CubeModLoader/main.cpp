@@ -77,7 +77,7 @@ void SetupHandlers() {
     setup_function(cube__Creature__OnPlayerFallDeath);
     setup_function(cube__Creature__OnCreatureDeath);
     setup_function(cube__Creature__CanEquipItem);
-    // setup_function(cube__StartMenuWidget__Draw);
+    setup_function(cube__StartMenuWidget__Draw);
     setup_function(cube__Game__Update);
     setup_function(cube__Item__GetBuyingPrice);
     setup_function(cube__Item__OnGetSellingPrice);
