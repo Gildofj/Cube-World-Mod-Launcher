@@ -82,7 +82,7 @@ void SetupHandlers() {
     setup_function(cube__Item__GetBuyingPrice);
     setup_function(cube__Item__OnGetSellingPrice);
     setup_function(cube__Item__OnGetGoldBagValue);
-    // setup_function(cube__Item__OnClassCanWearItem);
+    setup_function(cube__Item__OnClassCanWearItem);
 
     SetupChatHandler();
     SetupP2PRequestHandler();
