@@ -46,6 +46,9 @@ public:
 	Priority OnPresentPriority = NormalPriority;
 	virtual void OnPresent(void* SwapChain, UINT SyncInterval, UINT Flags) {}
 
+	Priority OnDrawImGuiPriority = NormalPriority;
+	virtual void OnDrawImGui() {}
+
 	Priority OnCreatureArmorCalculatedPriority = NormalPriority;
 	virtual void OnCreatureArmorCalculated(void* creature, float* armor) {}
 

@@ -200,6 +200,14 @@ void Logger::LogV(LogLevel level, const char* file, int line, const char* format
     vsnprintf(buffer.data(), buffer.size(), format, args);
 
     std::string message(buffer.data(), size);
+    LogFormattedMessage(level, file, line, message);
+}
+
+void Logger::LogFormattedMessage(LogLevel level, const char* file, int line, std::string_view message) {
+    if (level < m_minLevel) {
+        return;
+    }
+
     std::string timestamp = GetCurrentTimestampFormatted();
     DWORD threadId = GetCurrentThreadId();
     std::string_view fileName = file ? ExtractFileName(file) : "unknown";

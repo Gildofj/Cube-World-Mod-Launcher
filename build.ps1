@@ -35,7 +35,7 @@ if ($Target -eq "clean") {
 }
 
 Write-Host "Configurando CMake para MSVC x64..." -ForegroundColor Cyan
-cmake -B $BuildDir -S . -G "Visual Studio 18 2026" -A x64
+cmake -B $BuildDir -S . -A x64
 
 switch ($Target) {
     "all" {

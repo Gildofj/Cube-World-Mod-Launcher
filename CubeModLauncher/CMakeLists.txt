@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.8)
-project(project_CubeModLauncher)
+cmake_minimum_required(VERSION 3.20)
+project(project_CubeModLauncher LANGUAGES CXX)
 
 add_executable(CubeModLauncher 
     main.cpp

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.20)
 project(project_CubeModLoader LANGUAGES CXX)
 
 add_subdirectory(CWSDK)
@@ -26,9 +26,11 @@ add_library(CubeModLoader SHARED
 target_include_directories(CubeModLoader PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/callbacks
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
 )
 
-target_link_libraries(CubeModLoader LINK_PUBLIC CWSDK dbghelp)
+target_link_libraries(CubeModLoader LINK_PUBLIC CWSDK dbghelp imgui)
 target_compile_definitions(CubeModLoader PRIVATE MODLOADER _ITERATOR_DEBUG_LEVEL=0)
 target_compile_definitions(CWSDK PRIVATE MODLOADER)
 

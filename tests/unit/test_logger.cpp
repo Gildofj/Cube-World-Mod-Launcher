@@ -92,3 +92,25 @@ TEST_CASE(LoggerSubsystem, LevelToStringConversions) {
     ASSERT_STREQ(cw::Logger::LevelToString(cw::LogLevel::Error), "ERROR");
     ASSERT_STREQ(cw::Logger::LevelToString(cw::LogLevel::Critical), "CRITICAL");
 }
+
+TEST_CASE(LoggerSubsystem, ModernCpp20FormatLogging) {
+    Mocking::TempDirectoryScope temp_dir;
+    std::string log_dir = (temp_dir.path / "cube-world-logs-test").string();
+    cw::Logger::Instance().Init(log_dir, "fmt_test", false);
+    cw::Logger::Instance().SetLogLevel(cw::LogLevel::Debug);
+
+    int level = 99;
+    std::string playerName = "CubeHero";
+    CW_LOG_FMT_INFO("Player {} advanced to level {}", playerName, level);
+    CW_LOG_FMT_WARN("Memory threshold exceeded by {} bytes", 4096);
+
+    cw::Logger::Instance().Flush();
+    std::string filePath = cw::Logger::Instance().GetLogFilePath();
+    cw::Logger::Instance().Shutdown();
+
+    std::ifstream file(filePath);
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+    ASSERT_TRUE(content.find("Player CubeHero advanced to level 99") != std::string::npos);
+    ASSERT_TRUE(content.find("Memory threshold exceeded by 4096 bytes") != std::string::npos);
+}
