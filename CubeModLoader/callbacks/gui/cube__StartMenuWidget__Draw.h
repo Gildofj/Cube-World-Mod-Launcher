@@ -155,13 +155,47 @@ extern "C" void cube__StartMenuWidget__Draw(cube::StartMenuWidget * widget)
 	widget->SetBorderSize(3.0f);
 	widget->SetTextColor(&text_color);
 
-	float left_x = 20.0f - (float)widget->game->width / 2.0f;
-	float bottom_y = (float)widget->game->height / 2.0f - 20.0f;
+	FloatVector2 position;
+	position = *widget->GetSomeVector2(&position);
+
+	Matrix4 mat;
+	widget->node->LoadSomeMatrix(&mat);
+	float f9 = 10.0f;
+	float f1 = widget->game->height - 15;
+	float f8 = mat._24;
+	float f3 = f8;
+	f3 *= f1;
+	float f12 = mat._14;
+	float f0 = f12;
+	f0 *= f9;
+	f3 += f0;
+	f3 += mat._44;
+	float f13 = mat._22;
+	float f2 = f13;
+	f2 *= f1;
+	float f10 = mat._12;
+	f0 = f10;
+	f0 *= f9;
+	f2 += f0;
+	f2 += mat._42;
+	float f11 = mat._21;
+	float f7 = f11;
+	f7 *= f1;
+	float f14 = mat._11;
+	f0 = f14;
+	f0 *= f9;
+	f7 += f0;
+	f0 += mat._41;
+	f9 = 1.0f;
+	float f6 = f9;
+	f6 /= f3;
+	f7 *= f6;
+	f6 *= f2;
 
 	int offset = 20;
 	for (int i = 0; i < 3; i++)
 	{
-		widget->DrawString(&pos, &credits[i], left_x, bottom_y - i * offset);
+		widget->DrawString(&pos, &credits[i], f7 + (width - widget->game->width) / 2, f6 - i * offset);
 		widget->SetScalableFont(&font2);
 		widget->SetTextSize(20.0f);
 		offset = 25;
@@ -175,12 +209,10 @@ extern "C" void cube__StartMenuWidget__Draw(cube::StartMenuWidget * widget)
 	widget->SetTextSize(12.0f);
 	widget->SetTextPivot(plasma::TextPivot::Right);
 
-	float right_x = (float)widget->game->width / 2.0f - 20.0f;
 	for (int i = 0; i < 2; i++)
 	{
-		widget->DrawString(&pos, &versions[i], right_x, bottom_y - i * 20);
+		widget->DrawString(&pos, &versions[i], -f7 + (width + widget->game->width) / 2, f6 - i * 20);
 	}
-	
 };
 
 overwrite_function(0x291210, cube__StartMenuWidget__Draw);
