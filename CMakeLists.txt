@@ -45,6 +45,15 @@ if(NOT imgui_POPULATED)
     target_link_libraries(imgui PUBLIC d3d11 dxgi)
 endif()
 
+# Fetch and configure CubeForge SDK
+FetchContent_Declare(
+    cubeforge_sdk
+    GIT_REPOSITORY https://github.com/Gildofj/cubeforge.sdk.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(cubeforge_sdk)
+
 option(BUILD_LAUNCHER "Build CubeModLauncher executable" ON)
 option(BUILD_LOADER "Build CubeModLoader dynamic library and .fip" ON)
 option(BUILD_TESTS "Build automated unit and integration tests" ON)
