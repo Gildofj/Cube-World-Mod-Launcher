@@ -1,46 +1,48 @@
 # Development & Build Guide
 
+This guide covers building, testing, and contributing to the **CubeForge Loader & Launcher** suite.
+
+---
+
 ## 1. Prerequisites & Toolchain
 
-Building `Cube-World-Mod-Launcher` requires an x86_64 Windows compilation environment supporting GCC inline assembly (`.intel_syntax` / GNU C extensions):
+Building `cubeforge.loader` requires a 64-bit Windows C++20 toolchain:
 
-* **Operating System**: Windows 10/11 64-bit
-* **C++ Compiler**: MinGW-w64 (x86_64-w64-mingw32-gcc / g++)
-* **Build System**: [CMake](https://cmake.org/) (Version 3.8 or higher)
-* **Scripting**: Python 3.x (used for dynamic CMakeLists generation scripts)
-* **SDK Dependency**: [CWSDK](https://github.com/ChrisMiuchiz/CWSDK) (located inside `CubeModLoader/CWSDK`)
+* **Operating System**: Windows 10 or 11 (64-bit)
+* **Compiler**: Microsoft Visual Studio 2022 (MSVC x64 v143) with `ml64.exe` (MASM), or Clang-cl / MinGW-w64
+* **Build System**: [CMake](https://cmake.org/) (Version 3.20 or higher)
+* **SDK & Dependencies**: Handled automatically by CMake via `FetchContent`:
+  - **[CubeForge SDK](https://github.com/Gildofj/cubeforge.sdk)**
+  - **[Dear ImGui](https://github.com/ocornut/imgui)** (v1.91.8)
 
 ---
 
 ## 2. Project Layout
 
 ```text
-Cube-World-Mod-Launcher/
-├── CubeModLauncher/                # Executable Process Injector
-│   ├── CMakeLists.txt              # CMake configuration
-│   ├── CMakeSettings.json          # Visual Studio / IDE CMake profile
-│   ├── GenerateProjectCMake.py     # Python script to regenerate CMakeLists.txt
+cubeforge.loader/
+├── CubeModLauncher/                # Executable Process Injector (CubeModLauncher.exe)
+│   ├── CMakeLists.txt              # Subdirectory CMake configuration
 │   ├── Process.h / Process.cpp     # Process creation and DLL injection logic
 │   └── main.h / main.cpp           # Launcher CLI entry point
 │
-├── CubeModLoader/                  # Core Injected DLL & Mod Runtime
-│   ├── CMakeLists.txt              # CMake configuration
-│   ├── CMakeSettings.json          # Visual Studio / IDE CMake profile
-│   ├── GenerateProjectCMake.py     # Python script to regenerate CMakeLists.txt
-│   ├── CWSDK/                      # Submodule / SDK headers (cwsdk.h)
+├── CubeModLoader/                  # Core Injected DLL & In-Game Mod Runtime
+│   ├── CMakeLists.txt              # Subdirectory CMake configuration
 │   ├── callbacks/                  # Hook trampolines and domain handlers
 │   │   ├── creature/               # Creature death, armor, equip hooks
 │   │   ├── game/                   # Game loop, mouse hooks
 │   │   ├── gui/                    # Plasma UI, start menu, character preview
 │   │   ├── item/                   # Item pricing, gold bag, wearability
-│   │   └── world/                  # World generation and chunk remeshing
+│   │   └── world/                  # World generation and creature spawn hooks
 │   ├── GenericMod.h                # Base class interface for all mods
-│   ├── ModWidget.h / .cpp          # In-game mod management widget
+│   ├── ModWidget.h / .cpp          # In-game mod management widget (Plasma UI)
 │   ├── DLL.h / DLL.cpp             # Dynamic library loader wrapper
 │   ├── crc.h / crc.cpp             # Executable CRC32 validator
 │   ├── macros.h                    # ASM trampoline macros & stack helpers
+│   ├── trampolines.asm             # 64-bit MASM assembly hook trampolines
 │   └── main.h / main.cpp           # DllMain, initterm_e hook, mod discovery
 │
+├── tests/                          # Automated test suite
 ├── docs/                           # Technical documentation & guides
 ├── README.md                       # Repository overview & quickstart
 └── steam_appid.txt                 # Steam AppID configuration (1128000)
@@ -48,61 +50,67 @@ Cube-World-Mod-Launcher/
 
 ---
 
-## 3. Cloning with Submodules
+## 3. Cloning the Repository
 
-To clone the repository and initialize the nested `CWSDK` submodule:
+Because dependencies are managed via CMake `FetchContent`, a standard clone is all that is required:
 
 ```bash
-git clone --recurse-submodules https://github.com/Gildofj/cubeforge.loader.git
+git clone https://github.com/Gildofj/cubeforge.loader.git
 cd cubeforge.loader
-```
-
-If already cloned without submodules:
-```bash
-git submodule update --init --recursive
 ```
 
 ---
 
 ## 4. Building with CMake
 
-### 4.1 Building `CubeModLauncher`
+### 4.1 Building from Root (All Targets)
+
+You can build the entire project (Launcher, Loader, and Tests) from the repository root:
 
 ```bash
-cd CubeModLauncher
-mkdir build && cd build
-cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
-cmake --build .
-```
-This produces `CubeModLauncher.exe`.
+# Configure
+cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 
-### 4.2 Building `CubeModLoader`
+# Build all targets
+cmake --build build --config Release
+```
+
+### 4.2 Building Specific Targets
 
 ```bash
-cd CubeModLoader
-mkdir build && cd build
-cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
-cmake --build .
+# Build only the injected DLL & FIP plugin
+cmake --build build --config Release --target CubeModLoader
+
+# Build only the standalone process injector
+cmake --build build --config Release --target CubeModLauncher
+
+# Build and run the test suite
+cmake --build build --config Release --target cubemodlauncher_tests
+ctest --test-dir build -C Release --output-on-failure
 ```
-This produces `CubeModLoader.dll`.
+
+### 4.3 Local SDK Development Override
+
+If you are developing features in `cubeforge.sdk` locally and want `cubeforge.loader` to use your local SDK clone instead of fetching from Git:
+
+```bash
+cmake -B build -S . -DFETCHCONTENT_SOURCE_DIR_CUBEFORGE_SDK="D:/Projects/cubeforge.sdk"
+```
 
 ---
 
-## 5. CMake Project Generator Scripts
+## 5. Visual Studio 2022 Integration
 
-Both `CubeModLauncher` and `CubeModLoader` include a `GenerateProjectCMake.py` script. When new `.cpp` files are added to the directories, execute:
-
-```bash
-# Inside CubeModLauncher or CubeModLoader
-python GenerateProjectCMake.py
-```
-This automatically enumerates `.cpp` source files and writes a clean `CMakeLists.txt`.
+1. Open Visual Studio 2022.
+2. Select **File -> Open -> Folder...** and choose the `cubeforge.loader` directory.
+3. Select **`x64-Release`** from the configuration dropdown.
+4. Press **`Ctrl + Shift + B`** to build all components.
 
 ---
 
 ## 6. Testing & Deployment
 
-1. Copy `CubeModLauncher.exe` and `CubeModLoader.dll` into your root *Cube World* directory (where `cubeworld.exe` is located).
+1. Copy `CubeModLauncher.exe` and `CubeModLoader.dll` (or `CubeModLoader.fip`) into your root *Cube World* directory (where `cubeworld.exe` is located).
 2. Create a `Mods/` folder in the same directory:
    ```text
    <Cube World Directory>/
@@ -113,4 +121,11 @@ This automatically enumerates `.cpp` source files and writes a clean `CMakeLists
    │   ├── CustomMod1.dll
    │   └── CustomMod2.dll
    ```
-3. Run `CubeModLauncher.exe` to launch the game with the injector active.
+3. Run `CubeModLauncher.exe` (or launch via Steam with `CubeModLoader.fip` in place).
+
+---
+
+## 7. Writing Mods
+
+To develop custom mods for Cube World, use the official starter template:
+👉 **[CubeForge Mod Template](https://github.com/Gildofj/cubeforge.mod-template)**

@@ -5,6 +5,7 @@
 [![Toolchain](https://img.shields.io/badge/Compiler-MSVC%20%2F%20MinGW%20(x64)-brightgreen.svg)](https://visualstudio.microsoft.com/)
 [![CMake](https://img.shields.io/badge/CMake-3.20%2B-064F8C.svg)](https://cmake.org/)
 [![Target Game](https://img.shields.io/badge/Cube%20World-Release%201.0.0--1-orange.svg)](https://store.steampowered.com/app/1128000/Cube_World/)
+[![Mod Template](https://img.shields.io/badge/Template-cubeforge.mod--template-success.svg)](https://github.com/Gildofj/cubeforge.mod-template)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A robust DLL injection launcher, low-level runtime hook engine, and in-game mod management framework for **Cube World** (Steam release `1.0.0-1`, x86_64).
@@ -22,17 +23,31 @@ Powered by the **[CubeForge SDK](https://github.com/Gildofj/cubeforge.sdk)**.
 * **Priority Callback Engine**: Mod callbacks sorted by priority (`VeryHigh` to `VeryLow`) covering creature stats, combat events, inventory, input, rendering, world generation, and networking.
 * **Binary Integrity Verification**: CRC32 validation against packed (`0xC7682619`) and unpacked (`0xBA092543`) Steam executables.
 * **OS Compatibility Patching**: Built-in runtime patch for `FreeImage.dll` preventing crashes on Windows 8, 10, and 11.
+* **Zero-Submodule Setup**: Integrates dependencies (Dear ImGui and CubeForge SDK) automatically via CMake `FetchContent`.
+
+---
+
+## 🚀 Creating Your Own Mods (Recommended Starter)
+
+If you are a developer looking to create custom mods for Cube World, use our official starter template:
+
+👉 **[CubeForge Mod Template (`cubeforge.mod-template`)](https://github.com/Gildofj/cubeforge.mod-template)**
+
+The template comes pre-configured with:
+* Ready-to-build CMake project targeting C++20.
+* Automatic CubeForge SDK dependency fetching.
+* Working examples of chat commands (`/ping`), creature stat hooks, and game tick updates.
+* GitHub Actions CI workflow to build your mod automatically.
 
 ---
 
 ## 📂 Repository Structure
 
 ```text
-CubeForge-Loader/
+cubeforge.loader/
 ├── CubeModLauncher/         # Standalone process injector executable (CubeModLauncher.exe)
 ├── CubeModLoader/           # Runtime hooking DLL and in-game mod loader (CubeModLoader.dll / .fip)
 │   ├── callbacks/           # Engine hooks for GUI, Game, Creature, Items, World
-│   ├── CWSDK/               # Submodule for CubeForge SDK types and structures
 │   ├── GenericMod.h         # Base interface for custom mods
 │   └── ModWidget.cpp        # In-game Start Menu mod selector UI
 ├── docs/                    # Technical documentation and guides
@@ -46,7 +61,7 @@ CubeForge-Loader/
 
 ---
 
-## 🚀 Quick Start for Players
+## 🎮 Quick Start for Players
 
 ### Installation
 
@@ -62,20 +77,20 @@ CubeForge-Loader/
 
 ---
 
-## 🛠️ Quick Start for Developers
+## 🛠️ Quick Start for Developers & Contributors
 
 ### Prerequisites
 
 * **OS**: Windows 10/11 64-bit
 * **Compiler**: Visual Studio 2022 (MSVC x64) or MinGW-w64 (`x86_64-w64-mingw32-g++`)
 * **Build System**: CMake 3.20+
-* **Dependencies**: [CubeForge SDK](https://github.com/Gildofj/cubeforge.sdk)
+* **SDK Dependency**: Downloaded automatically by CMake via `FetchContent` from [CubeForge SDK](https://github.com/Gildofj/cubeforge.sdk).
 
 ### Build Instructions (CMake / Visual Studio)
 
 ```bash
-# 1. Clone with submodules
-git clone --recurse-submodules https://github.com/Gildofj/cubeforge.loader.git
+# 1. Clone the repository
+git clone https://github.com/Gildofj/cubeforge.loader.git
 cd cubeforge.loader
 
 # 2. Configure & Build via CMake
@@ -87,12 +102,12 @@ For comprehensive build details, see the [Development & Build Guide](docs/DEVELO
 
 ---
 
-## 🧩 Creating a Mod
+## 🧩 Basic Mod Structure
 
-All mods inherit from `GenericMod` and export required version and factory functions:
+All mods inherit from `GenericMod` and export the `MakeMod()` factory function:
 
 ```cpp
-#include "CWSDK/cwsdk.h"
+#include "cwsdk.h"
 
 class SampleMod : public GenericMod {
 public:
@@ -100,18 +115,17 @@ public:
         OnCreatureHPCalculatedPriority = NormalPriority;
     }
 
-    virtual void OnCreatureHPCalculated(void* creature, float* hp) override {
+    virtual void OnCreatureHPCalculated(cube::Creature* creature, float* hp) override {
         if (hp) *hp *= 1.10f; // +10% HP boost
     }
 };
 
-EXPORT int ModMajorVersion() { return 7; }
-EXPORT int ModMinorVersion() { return 3; }
-EXPORT void ModPreInitialize() {}
-EXPORT GenericMod* MakeMod() { return new SampleMod(); }
+EXPORT GenericMod* MakeMod() {
+    return new SampleMod();
+}
 ```
 
-Refer to the [Modding API Documentation](docs/MODDING-API.md) for available hooks, callbacks, and structures.
+Refer to the [Modding API Documentation](docs/MODDING-API.md) and [CubeForge Mod Template](https://github.com/Gildofj/cubeforge.mod-template) for detailed examples.
 
 ---
 

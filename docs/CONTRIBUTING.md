@@ -1,29 +1,40 @@
 # Contributing Guidelines
 
-Thank you for your interest in contributing to **Cube-World-Mod-Launcher**!
+Thank you for your interest in contributing to **CubeForge Loader & Launcher**!
+
+---
 
 ## 1. Development Workflow
 
-1. **Fork the Repository**: Create your own fork and clone with submodules:
+1. **Fork & Clone**: Fork the repository on GitHub and clone locally:
    ```bash
-   git clone --recurse-submodules https://github.com/<your-username>/Cube-World-Mod-Launcher.git
+   git clone https://github.com/<your-username>/cubeforge.loader.git
+   cd cubeforge.loader
    ```
 2. **Create a Feature Branch**:
    ```bash
    git checkout -b feature/your-feature-name
    ```
-3. **Implement Your Changes**: Ensure strict adherence to project standards (see below).
-4. **Compile & Test**: Build with MinGW-w64 and test against Cube World version `1.0.0-1`.
-5. **Submit a Pull Request**: Provide a descriptive PR explanation outlining the motivation, changes, and testing validation steps.
+3. **Implement Changes**: Adhere to the architectural standards below.
+4. **Compile & Test**: Build using MSVC x64 (Visual Studio 2022) or Clang-cl:
+   ```bash
+   cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+   cmake --build build --config Release
+   ```
+5. **Submit a Pull Request**: Provide a clear description of your changes, the motivation, and testing validation steps.
 
 ---
 
 ## 2. Engineering & Code Standards
 
-* **C++ & Compiler Compatibility**: All runtime hooks and assembly trampolines target GCC x86_64 (`x86_64-w64-mingw32-g++`). Ensure code remains compatible with MinGW-w64.
-* **Assembly Trampolines**: Naked functions (`__attribute__((naked))`) must properly preserve registers using `PUSH_ALL` and `POP_ALL` macros to prevent stack corruption.
-* **Separation of Concerns**: Keep process injection logic in `CubeModLauncher`, runtime hooking and GUI widgets in `CubeModLoader`, and mod domain contracts in `GenericMod.h`.
-* **Clean Code**: Code should be self-documenting. Use comments to explain *why* a reverse-engineered offset or patch exists, not *what* standard C++ syntax does.
+* **C++ Standard**: C++20 standard (`CMAKE_CXX_STANDARD 20`). Avoid non-standard compiler-specific extensions unless guarded.
+* **Toolchains**: Primary targets are Microsoft Visual C++ (`cl.exe` v143) and Clang-cl on 64-bit Windows.
+* **Assembly Trampolines**: Low-level 64-bit hooks are maintained in `trampolines.asm` and assembled via Microsoft Macro Assembler (`ml64.exe`). Always preserve register states (`PUSH_ALL_REGS` / `POP_ALL_REGS`) and align the stack to 16-byte boundaries before calling C++ handlers.
+* **Separation of Concerns**:
+  - `CubeModLauncher`: Standalone process injector.
+  - `CubeModLoader`: In-game runtime engine, assembly trampolines, and UI widget (`ModWidget`).
+  - `cubeforge.sdk`: Reconstructed game structures, math primitives, and API interfaces.
+* **Clean Code**: Code must be self-documenting. Use comments only to explain *why* an offset, calling convention, or patch exists.
 
 ---
 
@@ -31,6 +42,6 @@ Thank you for your interest in contributing to **Cube-World-Mod-Launcher**!
 
 When reporting bugs or crashes:
 - Specify your Windows OS version (10/11 x64).
-- Include the exact CRC32 checksum of your `cubeworld.exe` (reported in popup if mismatch occurs).
-- List all mods present in your `Mods/` folder.
+- Include the exact CRC32 checksum of your `cubeworld.exe`.
+- List all mods loaded in your `Mods/` directory.
 - Provide step-by-step reproduction instructions.
