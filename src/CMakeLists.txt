@@ -7,7 +7,11 @@ add_library(CubeForgeLoader_Common OBJECT
     mutex.cpp
     Logger.cpp
     CrashHandler.cpp
+    HookManager.cpp
 )
+
+# Link to common compiler options and standard
+target_link_libraries(CubeForgeLoader_Common PUBLIC Loader_CompilerFlags)
 
 target_include_directories(CubeForgeLoader_Common PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -21,6 +25,16 @@ if(MSVC)
     set_property(TARGET CubeForgeLoader_Common PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     target_compile_definitions(CubeForgeLoader_Common PRIVATE _ITERATOR_DEBUG_LEVEL=0 MODLOADER)
 endif()
+
+# Enable Precompiled Headers to speed up compilation
+target_precompile_headers(CubeForgeLoader_Common PUBLIC
+    <vector>
+    <string>
+    <unordered_map>
+    <memory>
+    <windows.h>
+    "imgui.h"
+)
 
 if(BUILD_LOADER)
     if(MSVC)
@@ -50,9 +64,12 @@ if(BUILD_LOADER)
         ${cubeforge_sdk_SOURCE_DIR}
     )
 
-    target_link_libraries(CubeForgeLoader LINK_PUBLIC CWSDK dbghelp imgui)
+    target_link_libraries(CubeForgeLoader PRIVATE CWSDK dbghelp imgui Loader_CompilerFlags)
     target_compile_definitions(CubeForgeLoader PRIVATE MODLOADER _ITERATOR_DEBUG_LEVEL=0)
     target_compile_definitions(CWSDK PRIVATE MODLOADER)
+
+    # Reuse Precompiled Headers from CubeForgeLoader_Common to speed up build further
+    target_precompile_headers(CubeForgeLoader REUSE_FROM CubeForgeLoader_Common)
 
     if(MSVC)
         set_property(TARGET CubeForgeLoader PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")

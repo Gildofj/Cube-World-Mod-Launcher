@@ -1,22 +1,40 @@
 cmake_minimum_required(VERSION 3.20)
 project(CubeForgeLoader LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Enable compiler cache if available
+find_program(CCACHE_PROGRAM NAMES ccache sccache)
+if(CCACHE_PROGRAM)
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    message(STATUS "Found compiler cache: ${CCACHE_PROGRAM}")
+endif()
 
 if(MSVC)
     # Enable MASM support natively on MSVC
     enable_language(ASM_MASM)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    add_compile_definitions(_ITERATOR_DEBUG_LEVEL=0 _CRT_SECURE_NO_WARNINGS DIRECTINPUT_VERSION=0x0800)
-    add_compile_options(/W3 /EHsc /utf-8 /wd4828)
 endif()
 
-# Enable Link-Time Optimization (LTO) globally if supported
+# Enable Link-Time Optimization (LTO) for Release/RelWithDebInfo builds if supported
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported LANGUAGES CXX)
 if(ipo_supported)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL TRUE)
+endif()
+
+# Create compiler interface target to enforce standards and common options
+add_library(Loader_CompilerFlags INTERFACE)
+target_compile_features(Loader_CompilerFlags INTERFACE cxx_std_20)
+
+if(MSVC)
+    target_compile_options(Loader_CompilerFlags INTERFACE /W3 /EHsc /utf-8 /wd4828 /MP /Zc:inline)
+    target_compile_definitions(Loader_CompilerFlags INTERFACE
+        _ITERATOR_DEBUG_LEVEL=0
+        _CRT_SECURE_NO_WARNINGS
+        DIRECTINPUT_VERSION=0x0800
+    )
 endif()
 
 # Fetch and configure Dear ImGui
@@ -52,6 +70,8 @@ if(NOT imgui_POPULATED)
         set_property(TARGET imgui PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     endif()
     target_link_libraries(imgui PUBLIC d3d11 dxgi)
+    target_link_libraries(imgui PRIVATE Loader_CompilerFlags)
+    set_target_properties(imgui PROPERTIES INTERPROCEDURAL_OPTIMIZATION FALSE)
 endif()
 
 FetchContent_Declare(

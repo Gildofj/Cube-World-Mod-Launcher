@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(project_CubeWorldTests CXX)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(TEST_SOURCES
     test_main.cpp
     unit/test_crc.cpp
@@ -24,6 +21,9 @@ add_executable(test_runner
     $<TARGET_OBJECTS:CubeForgeLoader_Common>
 )
 
+# Link against common compiler options and standards target
+target_link_libraries(test_runner PRIVATE Loader_CompilerFlags)
+
 target_include_directories(test_runner PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/src
@@ -40,6 +40,9 @@ if(MSVC)
     target_compile_definitions(test_runner PRIVATE _ITERATOR_DEBUG_LEVEL=0)
     set_property(TARGET test_runner PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
+
+# Reuse precompiled headers from CubeForgeLoader_Common
+target_precompile_headers(test_runner REUSE_FROM CubeForgeLoader_Common)
 
 include(CTest)
 enable_testing()

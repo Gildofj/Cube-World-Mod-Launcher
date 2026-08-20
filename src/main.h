@@ -26,6 +26,12 @@ dllname->name = GetProcAddress(dllname->handle, #name);
 
 #define GLOBAL static
 
+// Shared global variables (previously static/GLOBAL inside main.cpp)
+extern void* base;
+extern std::vector<DLL*> modDLLs;
+extern std::vector<DLL*> allDlls;
+extern std::vector<DLL*> legacyDLLs;
+
 void* Offset(void* x1, uint64_t x2);
 
 #endif // MAIN_H

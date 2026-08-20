@@ -35,7 +35,11 @@ if ($Target -eq "clean") {
 }
 
 Write-Host "Configurando CMake para MSVC x64..." -ForegroundColor Cyan
-cmake -B $BuildDir -S . -A x64
+$cmakeArgs = @("-B", $BuildDir, "-S", ".", "-A", "x64")
+if ($Target -eq "test" -or $Target -eq "all") {
+    $cmakeArgs += "-DBUILD_TESTS=ON"
+}
+cmake @cmakeArgs
 
 switch ($Target) {
     "all" {
