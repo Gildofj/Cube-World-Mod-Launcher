@@ -1,27 +1,15 @@
 cmake_minimum_required(VERSION 3.20)
-project(project_CubeModLoader LANGUAGES CXX)
+project(project_CubeForgeLoader LANGUAGES CXX)
 
-set(TRAMPOLINES_OBJ "${CMAKE_CURRENT_BINARY_DIR}/trampolines.obj")
-
-add_custom_command(
-    OUTPUT "${TRAMPOLINES_OBJ}"
-    COMMAND ml64.exe /c /Fo "${TRAMPOLINES_OBJ}" "${CMAKE_CURRENT_SOURCE_DIR}/trampolines.asm"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/trampolines.asm"
-    COMMENT "Assembling trampolines.asm with ml64"
-)
-
-add_library(CubeModLoader SHARED 
+# Create an OBJECT library for the shared core files to avoid recompiling them in the tests
+add_library(CubeForgeLoader_Common OBJECT
     crc.cpp
-    DLL.cpp
-    main.cpp
     mutex.cpp
-    ModWidget.cpp
     Logger.cpp
     CrashHandler.cpp
-    "${TRAMPOLINES_OBJ}"
 )
 
-target_include_directories(CubeModLoader PRIVATE 
+target_include_directories(CubeForgeLoader_Common PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/callbacks
     ${imgui_SOURCE_DIR}
@@ -29,28 +17,51 @@ target_include_directories(CubeModLoader PRIVATE
     ${cubeforge_sdk_SOURCE_DIR}
 )
 
-
-include(FetchContent)
-# Fetch and configure CubeForge SDK
-FetchContent_Declare(
-    cubeforge_sdk
-    GIT_REPOSITORY https://github.com/Gildofj/cubeforge.sdk.git
-    GIT_TAG        master
-    GIT_SHALLOW    TRUE
-)
-FetchContent_MakeAvailable(cubeforge_sdk)
-
-target_link_libraries(CubeModLoader LINK_PUBLIC CWSDK dbghelp imgui)
-target_compile_definitions(CubeModLoader PRIVATE MODLOADER _ITERATOR_DEBUG_LEVEL=0)
-target_compile_definitions(CWSDK PRIVATE MODLOADER)
-
 if(MSVC)
-    set_property(TARGET CubeModLoader PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set_property(TARGET CubeForgeLoader_Common PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    target_compile_definitions(CubeForgeLoader_Common PRIVATE _ITERATOR_DEBUG_LEVEL=0 MODLOADER)
 endif()
 
-add_custom_command(TARGET CubeModLoader POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    $<TARGET_FILE:CubeModLoader>
-    $<TARGET_FILE_DIR:CubeModLoader>/CubeModLoader.fip
-    COMMENT "Generating CubeModLoader.fip from dynamic library"
-)
+if(BUILD_LOADER)
+    if(MSVC)
+        # On MSVC, use native MASM compiler support for trampolines.asm
+        add_library(CubeForgeLoader SHARED 
+            $<TARGET_OBJECTS:CubeForgeLoader_Common>
+            DLL.cpp
+            main.cpp
+            ModWidget.cpp
+            trampolines.asm
+        )
+    else()
+        # Non-MSVC platforms (like macOS during development/testing)
+        add_library(CubeForgeLoader SHARED 
+            $<TARGET_OBJECTS:CubeForgeLoader_Common>
+            DLL.cpp
+            main.cpp
+            ModWidget.cpp
+        )
+    endif()
+
+    target_include_directories(CubeForgeLoader PRIVATE 
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/callbacks
+        ${imgui_SOURCE_DIR}
+        ${imgui_SOURCE_DIR}/backends
+        ${cubeforge_sdk_SOURCE_DIR}
+    )
+
+    target_link_libraries(CubeForgeLoader LINK_PUBLIC CWSDK dbghelp imgui)
+    target_compile_definitions(CubeForgeLoader PRIVATE MODLOADER _ITERATOR_DEBUG_LEVEL=0)
+    target_compile_definitions(CWSDK PRIVATE MODLOADER)
+
+    if(MSVC)
+        set_property(TARGET CubeForgeLoader PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    endif()
+
+    add_custom_command(TARGET CubeForgeLoader POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:CubeForgeLoader>
+        $<TARGET_FILE_DIR:CubeForgeLoader>/CubeForgeLoader.fip
+        COMMENT "Generating CubeForgeLoader.fip from dynamic library"
+    )
+endif()

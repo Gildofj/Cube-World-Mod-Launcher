@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-    Cube World Mod Launcher & Loader Build Script (MSVC x64)
+    Cube World Mod Loader Build Script (MSVC x64)
 .DESCRIPTION
-    Script de automação para compilação unificada com MSVC x64 de CubeModLauncher, CubeModLoader (.dll / .fip) e testes.
+    Script de automação para compilação unificada com MSVC x64 de CubeForgeLoader (.dll / .fip) e testes.
 .EXAMPLE
     .\build.ps1
     .\build.ps1 -Target loader
@@ -12,7 +12,7 @@
 
 [CmdletBinding()]
 param (
-    [ValidateSet("all", "loader", "launcher", "test", "clean")]
+    [ValidateSet("all", "loader", "test", "clean")]
     [string]$Target = "all",
 
     [ValidateSet("Release", "Debug", "RelWithDebInfo")]
@@ -43,12 +43,8 @@ switch ($Target) {
         cmake --build $BuildDir --config $BuildType --parallel
     }
     "loader" {
-        Write-Host "Compilando CubeModLoader (.dll e .fip) ($BuildType)..." -ForegroundColor Cyan
-        cmake --build $BuildDir --target CubeModLoader --config $BuildType
-    }
-    "launcher" {
-        Write-Host "Compilando CubeModLauncher ($BuildType)..." -ForegroundColor Cyan
-        cmake --build $BuildDir --target CubeModLauncher --config $BuildType
+        Write-Host "Compilando CubeForgeLoader (.dll e .fip) ($BuildType)..." -ForegroundColor Cyan
+        cmake --build $BuildDir --target CubeForgeLoader --config $BuildType
     }
     "test" {
         Write-Host "Compilando e executando testes ($BuildType)..." -ForegroundColor Cyan
@@ -64,21 +60,16 @@ if ($InstallPath -ne "") {
 
     Write-Host "Instalando binários em $InstallPath..." -ForegroundColor Magenta
 
-    $fipPath = Join-Path $BuildDir "CubeModLoader\$BuildType\CubeModLoader.fip"
-    $dllPath = Join-Path $BuildDir "CubeModLoader\$BuildType\CubeModLoader.dll"
-    $exePath = Join-Path $BuildDir "CubeModLauncher\$BuildType\CubeModLauncher.exe"
+    $fipPath = Join-Path $BuildDir "CubeForgeLoader\$BuildType\CubeForgeLoader.fip"
+    $dllPath = Join-Path $BuildDir "CubeForgeLoader\$BuildType\CubeForgeLoader.dll"
 
     if (Test-Path $fipPath) {
         Copy-Item -Path $fipPath -Destination $InstallPath -Force
-        Write-Host " -> Copiado CubeModLoader.fip" -ForegroundColor Green
+        Write-Host " -> Copiado CubeForgeLoader.fip" -ForegroundColor Green
     }
     if (Test-Path $dllPath) {
         Copy-Item -Path $dllPath -Destination $InstallPath -Force
-        Write-Host " -> Copiado CubeModLoader.dll" -ForegroundColor Green
-    }
-    if (Test-Path $exePath) {
-        Copy-Item -Path $exePath -Destination $InstallPath -Force
-        Write-Host " -> Copiado CubeModLauncher.exe" -ForegroundColor Green
+        Write-Host " -> Copiado CubeForgeLoader.dll" -ForegroundColor Green
     }
 }
 

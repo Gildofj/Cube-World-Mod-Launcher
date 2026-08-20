@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-`CubeModLoader` dynamically discovers and loads mods packaged as 64-bit native DLLs placed inside the `Mods/` directory. All mods interact with the game engine by including the [CubeForge SDK](https://github.com/Gildofj/cubeforge.sdk) and inheriting from the `GenericMod` interface.
+`CubeForgeLoader` dynamically discovers and loads mods packaged as 64-bit native DLLs placed inside the `Mods/` directory. All mods interact with the game engine by including the [CubeForge SDK](https://github.com/Gildofj/cubeforge.sdk) and inheriting from the `GenericMod` interface.
 
 For a ready-to-use project template, see:
 👉 **[CubeForge Mod Template (`cubeforge.mod-template`)](https://github.com/Gildofj/cubeforge.mod-template)**
@@ -155,7 +155,7 @@ public:
 
 ## 4. Priority Execution Model
 
-When multiple mods hook into the same callback, `CubeModLoader` invokes them in ascending priority order:
+When multiple mods hook into the same callback, `CubeForgeLoader` invokes them in ascending priority order:
 
 1. `VeryHighPriority (0)`
 2. `HighPriority (1)`

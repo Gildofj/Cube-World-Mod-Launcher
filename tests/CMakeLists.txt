@@ -4,8 +4,6 @@ project(project_CubeWorldTests CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-
 set(TEST_SOURCES
     test_main.cpp
     unit/test_crc.cpp
@@ -15,21 +13,30 @@ set(TEST_SOURCES
     unit/test_modwidget_pagination.cpp
     unit/test_mutex.cpp
     unit/test_trampoline.cpp
-    unit/test_launcher_process.cpp
     unit/test_logger.cpp
     unit/test_crash_handler.cpp
     integration/test_mod_lifecycle.cpp
     integration/test_fault_injection.cpp
-    ../src/crc.cpp
-    ../src/mutex.cpp
-    ../src/Logger.cpp
-    ../src/CrashHandler.cpp
 )
 
-add_executable(test_runner ${TEST_SOURCES})
-target_link_libraries(test_runner PRIVATE dbghelp)
+add_executable(test_runner 
+    ${TEST_SOURCES}
+    $<TARGET_OBJECTS:CubeForgeLoader_Common>
+)
+
+target_include_directories(test_runner PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/callbacks
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+    ${cubeforge_sdk_SOURCE_DIR}
+)
+
+target_compile_definitions(test_runner PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 if(MSVC)
+    target_link_libraries(test_runner PRIVATE dbghelp)
     target_compile_definitions(test_runner PRIVATE _ITERATOR_DEBUG_LEVEL=0)
     set_property(TARGET test_runner PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()

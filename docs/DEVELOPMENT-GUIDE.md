@@ -21,12 +21,7 @@ Building `cubeforge.loader` requires a 64-bit Windows C++20 toolchain:
 
 ```text
 cubeforge.loader/
-├── CubeModLauncher/                # Executable Process Injector (CubeModLauncher.exe)
-│   ├── CMakeLists.txt              # Subdirectory CMake configuration
-│   ├── Process.h / Process.cpp     # Process creation and DLL injection logic
-│   └── main.h / main.cpp           # Launcher CLI entry point
-│
-├── CubeModLoader/                  # Core Injected DLL & In-Game Mod Runtime
+├── CubeForgeLoader/                  # Core Injected DLL & In-Game Mod Runtime
 │   ├── CMakeLists.txt              # Subdirectory CMake configuration
 │   ├── callbacks/                  # Hook trampolines and domain handlers
 │   │   ├── creature/               # Creature death, armor, equip hooks
@@ -65,7 +60,7 @@ cd cubeforge.loader
 
 ### 4.1 Building from Root (All Targets)
 
-You can build the entire project (Launcher, Loader, and Tests) from the repository root:
+You can build the entire project (Loader and Tests) from the repository root:
 
 ```bash
 # Configure
@@ -79,13 +74,10 @@ cmake --build build --config Release
 
 ```bash
 # Build only the injected DLL & FIP plugin
-cmake --build build --config Release --target CubeModLoader
-
-# Build only the standalone process injector
-cmake --build build --config Release --target CubeModLauncher
+cmake --build build --config Release --target CubeForgeLoader
 
 # Build and run the test suite
-cmake --build build --config Release --target cubemodlauncher_tests
+cmake --build build --config Release --target test_runner
 ctest --test-dir build -C Release --output-on-failure
 ```
 
@@ -110,18 +102,17 @@ cmake -B build -S . -DFETCHCONTENT_SOURCE_DIR_CUBEFORGE_SDK="D:/Projects/cubefor
 
 ## 6. Testing & Deployment
 
-1. Copy `CubeModLauncher.exe` and `CubeModLoader.dll` (or `CubeModLoader.fip`) into your root *Cube World* directory (where `cubeworld.exe` is located).
+1. Copy `CubeForgeLoader.dll` (or `CubeForgeLoader.fip`) into your root *Cube World* directory (where `cubeworld.exe` is located).
 2. Create a `Mods/` folder in the same directory:
    ```text
    <Cube World Directory>/
    ├── cubeworld.exe
-   ├── CubeModLauncher.exe
-   ├── CubeModLoader.dll (or CubeModLoader.fip)
+   ├── CubeForgeLoader.dll (or CubeForgeLoader.fip)
    ├── Mods/
    │   ├── CustomMod1.dll
    │   └── CustomMod2.dll
    ```
-3. Run `CubeModLauncher.exe` (or launch via Steam with `CubeModLoader.fip` in place).
+3. Launch Cube World via Steam or directly via `cubeworld.exe` with `CubeForgeLoader.fip` (Steam FIP hook) in place.
 
 ---
 

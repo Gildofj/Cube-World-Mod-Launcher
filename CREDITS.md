@@ -28,7 +28,7 @@
   * Creators of *Cube World*.
 
 * **[ChrisMiuchiz](https://github.com/ChrisMiuchiz)**
-  * Original creator and author of **Cube-World-Mod-Launcher** and **CubeModLoader**. Designed the low-level assembly trampoline hooking engine and early FreeImage runtime patches.
+  * Original creator and author of **Cube-World-Mod-Launcher** and **CubeForgeLoader**. Designed the low-level assembly trampoline hooking engine and early FreeImage runtime patches.
 
 * **[Gijs Groenewegen](https://github.com/gijsgroenewegen)**
   * Maintained and developed the project throughout 2020–2022 ([gijsgroenewegen/Cube-World-Mod-Launcher](https://github.com/gijsgroenewegen/Cube-World-Mod-Launcher)). Introduced essential hook refinements, offset updates, and stability fixes.

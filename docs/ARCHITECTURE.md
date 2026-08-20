@@ -2,24 +2,19 @@
 
 ## 1. Overview
 
-`Cube-World-Mod-Launcher` is an injection and modding framework for *Cube World* (Steam release, version `1.0.0-1`, x86_64). The project is composed of two primary subsystems:
-
-1. **`CubeModLauncher`** (Executable): A lightweight Windows process injector that launches `cubeworld.exe` in a suspended state, injects the mod loader DLL into the remote address space, and resumes execution.
-2. **`CubeModLoader`** (Dynamic Library / FIP Plugin): The core runtime engine. It verifies executable integrity, hooks internal engine entry points via x86_64 assembly trampolines, mounts an in-game mod management GUI widget, and orchestrates the lifecycle of dynamic mod libraries (`.dll`).
+`cubeforge.loader` is a modern, lightweight modding framework and runtime hook engine for *Cube World* (Steam release, version `1.0.0-1`, x86_64). It is loaded natively as a plugin (`CubeForgeLoader.fip`) by the game's executable. It verifies executable integrity, hooks internal engine entry points via x86_64 assembly trampolines, mounts an in-game mod management GUI widget, and orchestrates the lifecycle of dynamic mod libraries (`.dll`).
 
 ```mermaid
 flowchart TD
     subgraph Host["Host OS (Windows x86_64)"]
-        Launcher["CubeModLauncher.exe"]
-        GameProc["cubeworld.exe (Suspended)"]
+        GameProc["cubeworld.exe"]
     end
 
-    subgraph Injection["Injection Phase"]
-        RemoteThread["CreateRemoteThread -> LoadLibraryA"]
-        LoaderDLL["CubeModLoader.dll / .fip"]
+    subgraph LoadPhase["Natives Loading (FIP)"]
+        LoaderDLL["CubeForgeLoader.fip"]
     end
 
-    subgraph Runtime["CubeModLoader Runtime"]
+    subgraph Runtime["CubeForgeLoader Runtime"]
         CRC["CRC32 Checksum Validation"]
         FIP["FreeImage.dll Compatibility Patch"]
         InitTerm["initterm_e Hook Redirection"]
@@ -29,11 +24,8 @@ flowchart TD
         ModsDir["Mods/*.dll Dynamic Loader"]
     end
 
-    Launcher -->|CreateProcess(CREATE_SUSPENDED)| GameProc
-    Launcher -->|VirtualAllocEx + WriteProcessMemory| Injection
-    RemoteThread -->|Injects| LoaderDLL
-    LoaderDLL --> GameProc
-    GameProc --> CRC
+    GameProc -->|Loads as Plugin| LoaderDLL
+    LoaderDLL --> CRC
     CRC --> FIP
     FIP --> InitTerm
     InitTerm --> Trampoline
@@ -46,27 +38,14 @@ flowchart TD
 
 ## 2. Subsystem Details
 
-### 2.1 CubeModLauncher (Injector)
+### 2.1 CubeForgeLoader (Runtime Hook Engine)
 
-* **Source Files**: [`main.cpp`](file:///d:/Projects/Cube-World-Mod-Launcher/CubeModLauncher/main.cpp), [`Process.cpp`](file:///d:/Projects/Cube-World-Mod-Launcher/CubeModLauncher/Process.cpp), [`Process.h`](file:///d:/Projects/Cube-World-Mod-Launcher/CubeModLauncher/Process.h)
-* **Responsibilities**:
-  1. Validates that `cubeworld.exe` and `CubeModLoader.dll` exist in the working directory.
-  2. Calls `CreateProcessA` with the `CREATE_SUSPENDED` flag to spawn the game process without executing its main thread.
-  3. Allocates memory inside the remote target process using `VirtualAllocEx(PAGE_READWRITE)`.
-  4. Writes the DLL path string into target process memory via `WriteProcessMemory`.
-  5. Resolves `LoadLibraryA` from `kernel32.dll` and invokes `CreateRemoteThread`.
-  6. Resumes the remote thread and sleeps briefly (`250ms`) before resuming the primary thread with `ResumeThread(pi.hThread)`.
-
----
-
-### 2.2 CubeModLoader (Runtime Hook Engine)
-
-* **Source Files**: [`main.cpp`](file:///d:/Projects/Cube-World-Mod-Launcher/CubeModLoader/main.cpp), [`macros.h`](file:///d:/Projects/Cube-World-Mod-Launcher/CubeModLoader/macros.h), [`crc.cpp`](file:///d:/Projects/Cube-World-Mod-Launcher/CubeModLoader/crc.cpp), [`DLL.cpp`](file:///d:/Projects/Cube-World-Mod-Launcher/CubeModLoader/DLL.cpp), [`ModWidget.cpp`](file:///d:/Projects/Cube-World-Mod-Launcher/CubeModLoader/ModWidget.cpp)
+* **Source Files**: [`main.cpp`](../src/main.cpp), [`macros.h`](../src/macros.h), [`crc.cpp`](../src/crc.cpp), [`DLL.cpp`](../src/DLL.cpp), [`ModWidget.cpp`](../src/ModWidget.cpp)
 
 #### A. Entry Point & Self-Preservation (`DllMain`)
 When attached (`DLL_PROCESS_ATTACH`), the loader performs:
 - **Module Lock**: Prevents multiple initializations via a mutex (`already_initialized_mtx`).
-- **Handle Pinning**: Calls `LoadLibrary("CubeModLoader.fip")` to prevent unloading when loaded as a plugin.
+- **Handle Pinning**: Calls `LoadLibrary("CubeForgeLoader.fip")` to prevent unloading when loaded as a plugin.
 - **Interactive Prompt**: If executed as a `.fip` extension, prompts the user via `MessageBoxA` to confirm mod execution.
 - **Binary Integrity Verification**: Computes the CRC32 of `cubeworld.exe` against known checksums:
   - Packed executable (SteamStub DRM): `0xC7682619`
@@ -101,7 +80,7 @@ Rather than patching the PE entry point directly, the loader redirects `initterm
 
 ## 3. Hooking & Trampoline Architecture
 
-The loader uses 64-bit absolute indirect jumps (`WriteFarJMP`) and GCC naked functions defined in [`macros.h`](file:///d:/Projects/Cube-World-Mod-Launcher/CubeModLoader/macros.h).
+The loader uses 64-bit absolute indirect jumps (`WriteFarJMP`) and GCC naked functions defined in [`macros.h`](../src/macros.h).
 
 ### Far Jump Encoding
 To jump anywhere within the 64-bit address space without RIP-relative limit restrictions:
@@ -129,7 +108,7 @@ The engine hooks dozens of game engine functions organized by domain:
 
 ## 4. In-Game Mod UI (`ModWidget`)
 
-* **Source Files**: [`ModWidget.h`](file:///d:/Projects/Cube-World-Mod-Launcher/CubeModLoader/ModWidget.h), [`ModWidget.cpp`](file:///d:/Projects/Cube-World-Mod-Launcher/CubeModLoader/ModWidget.cpp)
+* **Source Files**: [`ModWidget.h`](../src/ModWidget.h), [`ModWidget.cpp`](../src/ModWidget.cpp)
 * **Engine Integration**: Subclasses `cube::BaseWidget` in the game's proprietary Plasma rendering engine.
 * **Features**:
   - Injected directly into the start menu (`cube__StartMenuWidget__Draw`).
@@ -142,12 +121,12 @@ The engine hooks dozens of game engine functions organized by domain:
 
 ## 5. Mod Execution Model & Lifecycle
 
-Mods built for `CubeModLoader` export specific C-ABI functions and inherit from `GenericMod`:
+Mods built for `CubeForgeLoader` export specific C-ABI functions and inherit from `GenericMod`:
 
 ```mermaid
 sequenceDiagram
     participant Engine as Cube World Engine
-    participant Loader as CubeModLoader
+    participant Loader as CubeForgeLoader
     participant Mod as Mod DLL (GenericMod)
 
     Loader->>Mod: ModMajorVersion() & ModMinorVersion()

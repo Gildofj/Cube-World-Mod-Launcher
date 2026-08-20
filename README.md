@@ -45,8 +45,7 @@ The template comes pre-configured with:
 
 ```text
 cubeforge.loader/
-├── CubeModLauncher/         # Standalone process injector executable (CubeModLauncher.exe)
-├── CubeModLoader/           # Runtime hooking DLL and in-game mod loader (CubeModLoader.dll / .fip)
+├── src/                     # Runtime hooking DLL and in-game mod loader sources (produces .dll / .fip)
 │   ├── callbacks/           # Engine hooks for GUI, Game, Creature, Items, World
 │   ├── GenericMod.h         # Base interface for custom mods
 │   └── ModWidget.cpp        # In-game Start Menu mod selector UI
@@ -66,14 +65,13 @@ cubeforge.loader/
 ### Installation
 
 1. Download the latest release from the [Releases](https://github.com/Gildofj/cubeforge.loader/releases) section.
-2. Place `CubeModLoader.fip` (or `CubeModLauncher.exe` and `CubeModLoader.dll`) into your Cube World root directory (same folder as `cubeworld.exe`).
+2. Place `CubeForgeLoader.fip` into your Cube World root directory (same folder as `cubeworld.exe`).
 3. Create a folder named `Mods` in the game directory.
 4. Place your mod `.dll` files into the `Mods/` directory.
 
 ### Running with Mods
 
-* **FIP Plugin (`CubeModLoader.fip`)**: Launch the game normally via Steam. A dialog will prompt whether to enable mods.
-* **Standalone Launcher (`CubeModLauncher.exe`)**: Execute `CubeModLauncher.exe` directly.
+* **FIP Plugin (`CubeForgeLoader.fip`)**: Launch the game normally via Steam. A dialog will prompt whether to enable mods.
 
 ---
 

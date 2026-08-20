@@ -1,7 +1,7 @@
 .code
 
 ; =============================================================================
-; MASM x64 Trampolines and Mid-function Hooks for CubeModLoader
+; MASM x64 Trampolines and Mid-function Hooks for CubeForgeLoader
 ; Built with Microsoft Macro Assembler (ml64.exe)
 ; =============================================================================
 

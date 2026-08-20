@@ -18,7 +18,7 @@
 #define CUBE_PACKED_CRC 0xC7682619
 #define CUBE_UNPACKED_CRC 0xBA092543
 
-#define MODLOADER_NAME "CubeModLoader"
+#define MODLOADER_NAME "CubeForgeLoader"
 
 #define USE_CHECKSUM
 
