@@ -1,6 +1,6 @@
 #include "../framework/test_framework.h"
 #include "../mocks/MockEnvironment.h"
-#include "../../CubeModLoader/Logger.h"
+#include "../../src/Logger.h"
 #include <fstream>
 #include <thread>
 #include <vector>

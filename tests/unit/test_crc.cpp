@@ -1,6 +1,6 @@
 #include "../framework/test_framework.h"
 #include "../mocks/MockEnvironment.h"
-#include "../../CubeModLoader/crc.h"
+#include "../../src/crc.h"
 #include <cstring>
 
 TEST_CASE(CRC32, StandardVector_123456789) {

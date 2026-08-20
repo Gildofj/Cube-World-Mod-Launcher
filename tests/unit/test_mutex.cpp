@@ -1,5 +1,5 @@
 #include "../framework/test_framework.h"
-#include "../../CubeModLoader/mutex.h"
+#include "../../src/mutex.h"
 #include <thread>
 #include <vector>
 #include <atomic>

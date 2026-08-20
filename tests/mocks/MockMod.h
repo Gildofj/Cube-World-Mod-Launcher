@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <cstdint>
-#include "../../CubeModLoader/GenericMod.h"
+#include "../../src/GenericMod.h"
 
 namespace Mocking {
 

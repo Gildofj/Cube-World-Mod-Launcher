@@ -29,6 +29,17 @@ target_include_directories(CubeModLoader PRIVATE
     ${cubeforge_sdk_SOURCE_DIR}
 )
 
+
+include(FetchContent)
+# Fetch and configure CubeForge SDK
+FetchContent_Declare(
+    cubeforge_sdk
+    GIT_REPOSITORY https://github.com/Gildofj/cubeforge.sdk.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(cubeforge_sdk)
+
 target_link_libraries(CubeModLoader LINK_PUBLIC CWSDK dbghelp imgui)
 target_compile_definitions(CubeModLoader PRIVATE MODLOADER _ITERATOR_DEBUG_LEVEL=0)
 target_compile_definitions(CWSDK PRIVATE MODLOADER)

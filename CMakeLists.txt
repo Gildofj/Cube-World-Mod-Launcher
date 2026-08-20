@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(CubeWorldModLauncherMaster LANGUAGES CXX)
+project(CubeForgeLoader LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -45,29 +45,14 @@ if(NOT imgui_POPULATED)
     target_link_libraries(imgui PUBLIC d3d11 dxgi)
 endif()
 
-# Fetch and configure CubeForge SDK
-FetchContent_Declare(
-    cubeforge_sdk
-    GIT_REPOSITORY https://github.com/Gildofj/cubeforge.sdk.git
-    GIT_TAG        master
-    GIT_SHALLOW    TRUE
-)
-FetchContent_MakeAvailable(cubeforge_sdk)
-
-option(BUILD_LAUNCHER "Build CubeModLauncher executable" ON)
 option(BUILD_LOADER "Build CubeModLoader dynamic library and .fip" ON)
-option(BUILD_TESTS "Build automated unit and integration tests" ON)
-
-enable_testing()
+option(BUILD_TESTS "Build automated unit and integration tests" OFF)
 
 if(BUILD_LOADER)
-    add_subdirectory(CubeModLoader)
-endif()
-
-if(BUILD_LAUNCHER)
-    add_subdirectory(CubeModLauncher)
+    add_subdirectory(src)
 endif()
 
 if(BUILD_TESTS)
+    enable_testing()
     add_subdirectory(tests)
 endif()

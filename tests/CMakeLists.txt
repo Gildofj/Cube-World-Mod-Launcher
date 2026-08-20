@@ -20,10 +20,10 @@ set(TEST_SOURCES
     unit/test_crash_handler.cpp
     integration/test_mod_lifecycle.cpp
     integration/test_fault_injection.cpp
-    ../CubeModLoader/crc.cpp
-    ../CubeModLoader/mutex.cpp
-    ../CubeModLoader/Logger.cpp
-    ../CubeModLoader/CrashHandler.cpp
+    ../src/crc.cpp
+    ../src/mutex.cpp
+    ../src/Logger.cpp
+    ../src/CrashHandler.cpp
 )
 
 add_executable(test_runner ${TEST_SOURCES})

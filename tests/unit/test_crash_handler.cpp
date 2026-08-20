@@ -1,7 +1,7 @@
 #include "../framework/test_framework.h"
 #include "../mocks/MockEnvironment.h"
-#include "../../CubeModLoader/CrashHandler.h"
-#include "../../CubeModLoader/Logger.h"
+#include "../../src/CrashHandler.h"
+#include "../../src/Logger.h"
 #include <fstream>
 #include <filesystem>
 #include <windows.h>

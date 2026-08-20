@@ -29,8 +29,8 @@ def main():
         os.path.join(workspace_dir, "tests", "unit", "test_launcher_process.cpp"),
         os.path.join(workspace_dir, "tests", "integration", "test_mod_lifecycle.cpp"),
         os.path.join(workspace_dir, "tests", "integration", "test_fault_injection.cpp"),
-        os.path.join(workspace_dir, "CubeModLoader", "crc.cpp"),
-        os.path.join(workspace_dir, "CubeModLoader", "mutex.cpp"),
+        os.path.join(workspace_dir, "src", "crc.cpp"),
+        os.path.join(workspace_dir, "src", "mutex.cpp"),
     ]
 
     output_exe = os.path.join(build_dir, "test_runner.exe")
@@ -40,7 +40,7 @@ def main():
         "-std=c++17",
         "-O2",
         "-D_CRT_SECURE_NO_WARNINGS",
-        f"-I{os.path.join(workspace_dir, 'CubeModLoader')}",
+        f"-I{os.path.join(workspace_dir, 'src')}",
         f"-I{os.path.join(workspace_dir, 'tests')}",
         *test_sources,
         "-o", output_exe
