@@ -1,6 +1,3 @@
-cmake_minimum_required(VERSION 3.25)
-project(project_CubeForgeLoader LANGUAGES CXX)
-
 # Create an OBJECT library for the shared core files to avoid recompiling them in the tests
 add_library(CubeForgeLoader_Common OBJECT
     crc.cpp

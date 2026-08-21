@@ -1,6 +1,3 @@
-cmake_minimum_required(VERSION 3.25)
-project(project_CubeWorldTests CXX)
-
 set(TEST_SOURCES
     test_main.cpp
     unit/test_crc.cpp
