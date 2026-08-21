@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 project(project_CubeForgeLoader LANGUAGES CXX)
 
 # Create an OBJECT library for the shared core files to avoid recompiling them in the tests
@@ -9,13 +9,19 @@ add_library(CubeForgeLoader_Common OBJECT
     CrashHandler.cpp
     HookManager.cpp
 )
+add_library(CubeForge::Common ALIAS CubeForgeLoader_Common)
 
 # Link to common compiler options and standard
-target_link_libraries(CubeForgeLoader_Common PUBLIC Loader_CompilerFlags)
+target_link_libraries(CubeForgeLoader_Common PUBLIC CubeForge::CompilerFlags)
 
+# Local include directories
 target_include_directories(CubeForgeLoader_Common PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/callbacks
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/callbacks>
+)
+
+# External/Third-party include directories (marked as SYSTEM to suppress warnings)
+target_include_directories(CubeForgeLoader_Common SYSTEM PUBLIC 
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${cubeforge_sdk_SOURCE_DIR}
@@ -55,16 +61,28 @@ if(BUILD_LOADER)
             ModWidget.cpp
         )
     endif()
+    add_library(CubeForge::Loader ALIAS CubeForgeLoader)
 
+    # Local include directories
     target_include_directories(CubeForgeLoader PRIVATE 
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/callbacks
+    )
+
+    # External/Third-party include directories (marked as SYSTEM to suppress warnings)
+    target_include_directories(CubeForgeLoader SYSTEM PRIVATE
         ${imgui_SOURCE_DIR}
         ${imgui_SOURCE_DIR}/backends
         ${cubeforge_sdk_SOURCE_DIR}
     )
 
-    target_link_libraries(CubeForgeLoader PRIVATE CWSDK dbghelp imgui Loader_CompilerFlags)
+    target_link_libraries(CubeForgeLoader PRIVATE 
+        CWSDK 
+        dbghelp 
+        imgui::imgui 
+        CubeForge::CompilerFlags
+    )
+    
     target_compile_definitions(CubeForgeLoader PRIVATE MODLOADER _ITERATOR_DEBUG_LEVEL=0)
     target_compile_definitions(CWSDK PRIVATE MODLOADER)
 

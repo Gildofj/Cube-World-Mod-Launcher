@@ -1,5 +1,8 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 project(CubeForgeLoader LANGUAGES CXX)
+
+# Enforce standard-compliant and modern behavior
+cmake_policy(SET CMP0091 NEW) # Use MSVC_RUNTIME_LIBRARY property
 
 # Enable compiler cache if available
 find_program(CCACHE_PROGRAM NAMES ccache sccache)
@@ -7,6 +10,13 @@ if(CCACHE_PROGRAM)
     set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
     set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
     message(STATUS "Found compiler cache: ${CCACHE_PROGRAM}")
+endif()
+
+# Enable Clang-Tidy integration if available
+find_program(CLANG_TIDY_PROGRAM NAMES clang-tidy)
+if(CLANG_TIDY_PROGRAM)
+    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_PROGRAM}")
+    message(STATUS "Found Clang-Tidy: ${CLANG_TIDY_PROGRAM}")
 endif()
 
 if(MSVC)
@@ -26,25 +36,40 @@ endif()
 
 # Create compiler interface target to enforce standards and common options
 add_library(Loader_CompilerFlags INTERFACE)
+add_library(CubeForge::CompilerFlags ALIAS Loader_CompilerFlags)
 target_compile_features(Loader_CompilerFlags INTERFACE cxx_std_20)
 
 if(MSVC)
-    target_compile_options(Loader_CompilerFlags INTERFACE /W3 /EHsc /utf-8 /wd4828 /MP /Zc:inline)
+    target_compile_options(Loader_CompilerFlags INTERFACE 
+        /W4          # Enforce stricter warnings (Level 4)
+        /EHsc        # Standard C++ exception handling
+        /utf-8       # Set Source and Executable character sets to UTF-8
+        /wd4828      # Disable warning on characters that cannot be represented in the current code page
+        /wd4100      # Suppress unreferenced formal parameter (common in callbacks/hooks)
+        /MP          # Multi-process compilation
+        /Zc:inline   # Remove unreferenced functions or data
+    )
     target_compile_definitions(Loader_CompilerFlags INTERFACE
         _ITERATOR_DEBUG_LEVEL=0
         _CRT_SECURE_NO_WARNINGS
         DIRECTINPUT_VERSION=0x0800
     )
+else()
+    target_compile_options(Loader_CompilerFlags INTERFACE 
+        -Wall 
+        -Wextra 
+        -Wpedantic 
+        -Wno-unused-parameter
+    )
 endif()
 
 # Fetch and configure Dear ImGui
 include(FetchContent)
-if(POLICY CMP0169)
-    cmake_policy(SET CMP0169 OLD)
-endif()
 
+# Mark ImGui as SYSTEM to suppress compiler warnings from its headers
 FetchContent_Declare(
     imgui
+    SYSTEM
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
     GIT_TAG        v1.91.8
     GIT_SHALLOW    TRUE
@@ -61,7 +86,8 @@ if(NOT imgui_POPULATED)
         ${imgui_SOURCE_DIR}/backends/imgui_impl_dx11.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
     )
-    target_include_directories(imgui PUBLIC
+    # Using SYSTEM on include directories as well to guarantee header isolation
+    target_include_directories(imgui SYSTEM PUBLIC
         ${imgui_SOURCE_DIR}
         ${imgui_SOURCE_DIR}/backends
     )
@@ -73,9 +99,12 @@ if(NOT imgui_POPULATED)
     target_link_libraries(imgui PRIVATE Loader_CompilerFlags)
     set_target_properties(imgui PROPERTIES INTERPROCEDURAL_OPTIMIZATION FALSE)
 endif()
+add_library(imgui::imgui ALIAS imgui)
 
+# Fetch and configure cubeforge_sdk
 FetchContent_Declare(
     cubeforge_sdk
+    SYSTEM
     GIT_REPOSITORY https://github.com/Gildofj/cubeforge.sdk.git
     GIT_TAG        master
     GIT_SHALLOW    TRUE

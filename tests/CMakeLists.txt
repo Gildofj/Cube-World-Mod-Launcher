@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 project(project_CubeWorldTests CXX)
 
 set(TEST_SOURCES
@@ -16,21 +16,22 @@ set(TEST_SOURCES
     integration/test_fault_injection.cpp
 )
 
+# In modern CMake (3.12+), linking against an OBJECT library transitively adds its object files
+# and propagates compile options, definitions, and include directories automatically.
 add_executable(test_runner 
     ${TEST_SOURCES}
-    $<TARGET_OBJECTS:CubeForgeLoader_Common>
 )
 
-# Link against common compiler options and standards target
-target_link_libraries(test_runner PRIVATE Loader_CompilerFlags)
+# Link against the Common object library and compiler options
+target_link_libraries(test_runner PRIVATE 
+    CubeForge::Common 
+    CubeForge::CompilerFlags
+)
 
+# Test-specific private include directories (e.g. for framework files)
 target_include_directories(test_runner PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/src/callbacks
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends
-    ${cubeforge_sdk_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/framework
 )
 
 target_compile_definitions(test_runner PRIVATE _CRT_SECURE_NO_WARNINGS)

@@ -1,8 +1,9 @@
 <#
 .SYNOPSIS
-    Cube World Mod Loader Build Script (MSVC x64)
+    Cube World Mod Loader Build Script (MSVC x64) - Modernized via CMake Presets
 .DESCRIPTION
     Script de automação para compilação unificada com MSVC x64 de CubeForgeLoader (.dll / .fip) e testes.
+    Utiliza por debaixo dos panos o novo sistema de CMakePresets.json do CMake 3.25+.
 .EXAMPLE
     .\build.ps1
     .\build.ps1 -Target loader
@@ -18,42 +19,44 @@ param (
     [ValidateSet("Release", "Debug", "RelWithDebInfo")]
     [string]$BuildType = "Release",
 
-    [string]$BuildDir = "build_msvc",
-
     [string]$InstallPath = ""
 )
 
 $ErrorActionPreference = "Stop"
 
+# Map to the unified CMake Preset names
+$presetName = "windows-release"
+if ($BuildType -eq "Debug") {
+    $presetName = "windows-debug"
+}
+
+$buildDir = "build/$presetName"
+
 if ($Target -eq "clean") {
-    if (Test-Path $BuildDir) {
-        Write-Host "Limpando diretório $BuildDir..." -ForegroundColor Yellow
-        Remove-Item -Recurse -Force $BuildDir
+    if (Test-Path "build") {
+        Write-Host "Limpando diretórios de build..." -ForegroundColor Yellow
+        Remove-Item -Recurse -Force "build"
         Write-Host "Build limpo com sucesso." -ForegroundColor Green
     }
     exit 0
 }
 
-Write-Host "Configurando CMake para MSVC x64..." -ForegroundColor Cyan
-$cmakeArgs = @("-B", $BuildDir, "-S", ".", "-A", "x64")
-if ($Target -eq "test" -or $Target -eq "all") {
-    $cmakeArgs += "-DBUILD_TESTS=ON"
-}
-cmake @cmakeArgs
+Write-Host "Configurando CMake usando o Preset: $presetName..." -ForegroundColor Cyan
+cmake --preset $presetName
 
 switch ($Target) {
     "all" {
-        Write-Host "Compilando todo o projeto ($BuildType)..." -ForegroundColor Cyan
-        cmake --build $BuildDir --config $BuildType --parallel
+        Write-Host "Compilando todo o projeto usando o Preset: $presetName..." -ForegroundColor Cyan
+        cmake --build --preset $presetName --parallel
     }
     "loader" {
-        Write-Host "Compilando CubeForgeLoader (.dll e .fip) ($BuildType)..." -ForegroundColor Cyan
-        cmake --build $BuildDir --target CubeForgeLoader --config $BuildType
+        Write-Host "Compilando target CubeForgeLoader..." -ForegroundColor Cyan
+        cmake --build --preset $presetName --target CubeForgeLoader
     }
     "test" {
-        Write-Host "Compilando e executando testes ($BuildType)..." -ForegroundColor Cyan
-        cmake --build $BuildDir --target test_runner --config $BuildType
-        ctest --test-dir $BuildDir -C $BuildType --output-on-failure
+        Write-Host "Compilando e executando testes via CTest..." -ForegroundColor Cyan
+        cmake --build --preset $presetName --target test_runner
+        ctest --preset "windows-test"
     }
 }
 
@@ -64,16 +67,31 @@ if ($InstallPath -ne "") {
 
     Write-Host "Instalando binários em $InstallPath..." -ForegroundColor Magenta
 
-    $fipPath = Join-Path $BuildDir "CubeForgeLoader\$BuildType\CubeForgeLoader.fip"
-    $dllPath = Join-Path $BuildDir "CubeForgeLoader\$BuildType\CubeForgeLoader.dll"
+    # Support both single-config generators (Ninja) and multi-config (Visual Studio) output structures
+    $fipCandidates = @(
+        (Join-Path $buildDir "src/CubeForgeLoader.fip"),
+        (Join-Path $buildDir "src/$BuildType/CubeForgeLoader.fip")
+    )
+    $dllCandidates = @(
+        (Join-Path $buildDir "src/CubeForgeLoader.dll"),
+        (Join-Path $buildDir "src/$BuildType/CubeForgeLoader.dll")
+    )
 
-    if (Test-Path $fipPath) {
+    $fipPath = $fipCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+    $dllPath = $dllCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+    if ($fipPath) {
         Copy-Item -Path $fipPath -Destination $InstallPath -Force
-        Write-Host " -> Copiado CubeForgeLoader.fip" -ForegroundColor Green
+        Write-Host " -> Copiado CubeForgeLoader.fip ($fipPath)" -ForegroundColor Green
+    } else {
+        Write-Warning "CubeForgeLoader.fip não encontrado nos caminhos candidatos."
     }
-    if (Test-Path $dllPath) {
+
+    if ($dllPath) {
         Copy-Item -Path $dllPath -Destination $InstallPath -Force
-        Write-Host " -> Copiado CubeForgeLoader.dll" -ForegroundColor Green
+        Write-Host " -> Copiado CubeForgeLoader.dll ($dllPath)" -ForegroundColor Green
+    } else {
+        Write-Warning "CubeForgeLoader.dll não encontrado nos caminhos candidatos."
     }
 }
 
