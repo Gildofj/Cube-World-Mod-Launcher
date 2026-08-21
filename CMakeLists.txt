@@ -63,6 +63,10 @@ else()
     )
 endif()
 
+# Temporarily disable Clang-Tidy for third-party/external targets to avoid warnings/errors and speed up compilation
+set(OLD_CMAKE_CXX_CLANG_TIDY ${CMAKE_CXX_CLANG_TIDY})
+set(CMAKE_CXX_CLANG_TIDY "")
+
 # Fetch and configure Dear ImGui
 include(FetchContent)
 
@@ -109,6 +113,12 @@ FetchContent_Declare(
     GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(cubeforge_sdk)
+
+# Restore Clang-Tidy for our project targets
+set(CMAKE_CXX_CLANG_TIDY ${OLD_CMAKE_CXX_CLANG_TIDY})
+
+# Ensure CWSDK target compiles with correct compiler flags and exception handling
+target_link_libraries(CWSDK PRIVATE Loader_CompilerFlags)
 
 option(BUILD_LOADER "Build CubeForgeLoader dynamic library and .fip" ON)
 option(BUILD_TESTS "Build automated unit and integration tests" OFF)

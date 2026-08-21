@@ -22,7 +22,6 @@ Checks: >
 # - modernize-use-nodiscard: Too noisy for standard loader/hook design
 WarningsAsErrors: ''
 HeaderFilterRegex: '^(src|tests)/.*'
-AnalyzeTemporaryDtors: false
 FormatStyle: file
 User: ''
 CheckOptions:
