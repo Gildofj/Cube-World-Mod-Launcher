@@ -23,6 +23,8 @@ add_executable(test_runner
 target_link_libraries(test_runner PRIVATE 
     CubeForge::Common 
     CubeForge::CompilerFlags
+    CWSDK
+    imgui::imgui
 )
 
 # Test-specific private include directories (e.g. for framework files)

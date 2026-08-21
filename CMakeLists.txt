@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(CubeForgeLoader LANGUAGES CXX)
+project(CubeForgeLoader LANGUAGES C CXX)
 
 # Enforce standard-compliant and modern behavior
 cmake_policy(SET CMP0091 NEW) # Use MSVC_RUNTIME_LIBRARY property
@@ -74,9 +74,8 @@ FetchContent_Declare(
     GIT_TAG        v1.91.8
     GIT_SHALLOW    TRUE
 )
-FetchContent_GetProperties(imgui)
-if(NOT imgui_POPULATED)
-    FetchContent_Populate(imgui)
+FetchContent_MakeAvailable(imgui)
+if(NOT TARGET imgui)
     add_library(imgui STATIC
         ${imgui_SOURCE_DIR}/imgui.cpp
         ${imgui_SOURCE_DIR}/imgui_demo.cpp
