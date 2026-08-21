@@ -24,10 +24,33 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-# Map to the unified CMake Preset names
-$presetName = "windows-release"
-if ($BuildType -eq "Debug") {
-    $presetName = "windows-debug"
+$isWindows = $true
+if ($PSVersionTable.PSVersion.Major -ge 6) {
+    $isWindows = $IsWindows
+}
+
+# Map to the unified CMake Preset names based on Platform
+$presetName = ""
+$testPresetName = ""
+
+if ($isWindows) {
+    $testPresetName = "windows-test"
+    if ($BuildType -eq "Debug") {
+        $presetName = "windows-debug"
+    } else {
+        $presetName = "windows-release"
+    }
+} else {
+    $testPresetName = "macos-test"
+    $presetName = "macos-debug" # Debug is used for macOS testing
+    
+    if ($Target -eq "loader") {
+        Write-Error "O target 'loader' não é suportado no macOS/Linux. Apenas o target 'test' ou 'all' estão disponíveis para execução de testes unitários."
+    }
+    if ($InstallPath -ne "") {
+        Write-Warning "Instalação desativada: O target de instalação só é suportado no Windows onde o CubeForgeLoader é compilado."
+        $InstallPath = "" # Clear InstallPath to skip installation steps
+    }
 }
 
 $buildDir = "build/$presetName"
@@ -56,7 +79,7 @@ switch ($Target) {
     "test" {
         Write-Host "Compilando e executando testes via CTest..." -ForegroundColor Cyan
         cmake --build --preset $presetName --target test_runner
-        ctest --preset "windows-test"
+        ctest --preset $testPresetName
     }
 }
 

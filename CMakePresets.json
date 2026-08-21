@@ -26,8 +26,14 @@
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       },
-      "architecture": "x64",
-      "toolset": "v143",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "v143",
+        "strategy": "external"
+      },
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "cl"
       }
