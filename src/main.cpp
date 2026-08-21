@@ -72,16 +72,18 @@ extern "C" void StartMods() {
     
     // Find all the functions the mods may export
     for (DLL* dll: modDLLs) {
-        MUST_IMPORT(dll, ModMajorVersion);
-        MUST_IMPORT(dll, ModMinorVersion);
-        MUST_IMPORT(dll, ModPreInitialize);
-		MUST_IMPORT(dll, MakeMod);
+        MUST_IMPORT(dll, MakeMod);
+
+        // Versioning and pre-init functions are optional for backward compatibility with older mods
+        dll->ModMajorVersion = GetProcAddress(dll->handle, "ModMajorVersion");
+        dll->ModMinorVersion = GetProcAddress(dll->handle, "ModMinorVersion");
+        dll->ModPreInitialize = GetProcAddress(dll->handle, "ModPreInitialize");
     }
 
     // Ensure version compatibility
 	for (DLL* dll : modDLLs) {
-		int majorVersion = ((int(*)())dll->ModMajorVersion)();
-		int minorVersion = ((int(*)())dll->ModMinorVersion)();
+		int majorVersion = dll->ModMajorVersion ? ((int(*)())dll->ModMajorVersion)() : MOD_MAJOR_VERSION;
+		int minorVersion = dll->ModMinorVersion ? ((int(*)())dll->ModMinorVersion)() : MOD_MINOR_VERSION;
 
 		if (majorVersion > MOD_MAJOR_VERSION) {
 			snprintf(msg, sizeof(msg), "%s has major version %d but requires %d. You should update your mod loader.\n", dll->fileName.c_str(), majorVersion, MOD_MAJOR_VERSION);
@@ -121,8 +123,10 @@ extern "C" void StartMods() {
 
     // Run Initialization routines on all mods
     for (DLL* dll: modDLLs) {
-        CW_LOG_DEBUG("Calling ModPreInitialize on %s", dll->fileName.c_str());
-        ((void(*)())dll->ModPreInitialize)();
+        if (dll->ModPreInitialize) {
+            CW_LOG_DEBUG("Calling ModPreInitialize on %s", dll->fileName.c_str());
+            ((void(*)())dll->ModPreInitialize)();
+        }
 		dll->mod = ((GenericMod*(*)())dll->MakeMod)();
     }
 

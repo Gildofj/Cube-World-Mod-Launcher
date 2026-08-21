@@ -1,0 +1,54 @@
+name: Build and Release .fip
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for manual release (leave empty to build without releasing)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Ninja
+        run: choco install ninja
+
+      - name: Build Project
+        shell: powershell
+        run: |
+          .\build.ps1 -Target loader -BuildType Release
+
+      - name: Verify Build Output
+        shell: powershell
+        run: |
+          if (Test-Path "build/windows-release/src/CubeForgeLoader.fip") {
+              Write-Host "Success: CubeForgeLoader.fip was generated successfully." -ForegroundColor Green
+          } else {
+              Write-Error "Error: CubeForgeLoader.fip was not found in the output directory."
+          }
+
+      - name: Create and Publish Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.tag_name != ''
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          name: ${{ github.event.inputs.tag_name || github.ref_name }} (Cube World 1.0.0-1, CWSDK 7.3)
+          files: build/windows-release/src/CubeForgeLoader.fip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
