@@ -36,7 +36,7 @@ target_precompile_headers(CubeForgeLoader_Common PUBLIC
     <unordered_map>
     <memory>
     <windows.h>
-    "imgui.h"
+    <imgui.h>
 )
 
 if(BUILD_LOADER)
