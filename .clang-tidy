@@ -20,7 +20,7 @@ Checks: >
 # - readability-implicit-boolean-conversion: Extremely common in C/Win32 APIs
 # - cppcoreguidelines-pro-type-vararg: Required for logger format functions
 # - modernize-use-nodiscard: Too noisy for standard loader/hook design
-DiagnosticsAsErrors: ''
+WarningsAsErrors: ''
 HeaderFilterRegex: '^(src|tests)/.*'
 AnalyzeTemporaryDtors: false
 FormatStyle: file
