@@ -118,7 +118,30 @@ FetchContent_MakeAvailable(cubeforge_sdk)
 set(CMAKE_CXX_CLANG_TIDY ${OLD_CMAKE_CXX_CLANG_TIDY})
 
 # Ensure CWSDK target compiles with correct compiler flags and exception handling
-target_link_libraries(CWSDK PRIVATE Loader_CompilerFlags)
+target_compile_features(CWSDK PRIVATE cxx_std_20)
+if(MSVC)
+    target_compile_options(CWSDK PRIVATE 
+        /W4          # Enforce stricter warnings (Level 4)
+        /EHsc        # Standard C++ exception handling
+        /utf-8       # Set Source and Executable character sets to UTF-8
+        /wd4828      # Disable warning on characters that cannot be represented in the current code page
+        /wd4100      # Suppress unreferenced formal parameter (common in callbacks/hooks)
+        /MP          # Multi-process compilation
+        /Zc:inline   # Remove unreferenced functions or data
+    )
+    target_compile_definitions(CWSDK PRIVATE
+        _ITERATOR_DEBUG_LEVEL=0
+        _CRT_SECURE_NO_WARNINGS
+        DIRECTINPUT_VERSION=0x0800
+    )
+else()
+    target_compile_options(CWSDK PRIVATE 
+        -Wall 
+        -Wextra 
+        -Wpedantic 
+        -Wno-unused-parameter
+    )
+endif()
 
 option(BUILD_LOADER "Build CubeForgeLoader dynamic library and .fip" ON)
 option(BUILD_TESTS "Build automated unit and integration tests" OFF)
