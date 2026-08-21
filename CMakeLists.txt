@@ -110,11 +110,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(cubeforge_sdk)
 
-# Enable C++ exception handling for the SDK target when compiling under MSVC
-if(TARGET CWSDK AND MSVC)
-    target_compile_options(CWSDK PRIVATE /EHsc)
-endif()
-
 option(BUILD_LOADER "Build CubeForgeLoader dynamic library and .fip" ON)
 option(BUILD_TESTS "Build automated unit and integration tests" OFF)
 
